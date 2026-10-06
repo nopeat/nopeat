@@ -186,7 +186,7 @@ nopeat ./dist/metafile.json        # an esbuild metafile
 
 nopeat ./dist --budget nopeat.config.json   # exits 1 on a breach
 nopeat ./dist --mode json > sizes.json               # for CI or BI
-nopeat ./dist --mode csv  > sizes.csv
+nopeat ./dist --csv sizes.csv                        # a column per size dimension
 nopeat ./dist/map.js.map --bench-map                 # attribution only, timed
 ```
 
