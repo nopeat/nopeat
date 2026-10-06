@@ -1,0 +1,305 @@
+<div align="center">
+
+<img src="assets/logo.svg" alt="Nopeat logo" width="72" />
+
+# Nopeat
+
+**あらゆるバンドラーのための一つのアナライザー。** `stats.json` から依存グラフ、source map から
+実バイトの帰属、esbuild の metafile、あるいはただの `dist/` ディレクトリを、すべて同一の
+グラフに統合します。メモリは仅仅その一部で済みます。
+
+**Nopeat** はフィンランド語の *nopea*（「速い」の複数形）に由来します。
+
+[![CI](https://github.com/Nopeat/Nopeat/actions/workflows/ci.yml/badge.svg)](https://github.com/Nopeat/Nopeat/actions/workflows/ci.yml)
+[![status](https://img.shields.io/badge/status-unreleased-orange.svg)](#インストール)
+[![MSRV](https://img.shields.io/badge/rust-1.90%2B-blue.svg)](https://doc.rust-lang.org/stable/notes.html)
+[![license](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
+
+[English](README.en.md) · [中文](README.zh.md) · **日本語** · [Deutsch](README.de.md)
+
+</div>
+
+<p align="center">
+  <a href="#問題">問題</a> ·
+  <a href="#実測値">実測値</a> ·
+  <a href="#ゴーストコードと隠しコード">ゴーストと隠しコード</a> ·
+  <a href="#インストール">インストール</a> ·
+  <a href="#現状">正直な現状</a> ·
+  <a href="#なぜこう作るのか">なぜこう作るのか</a>
+</p>
+
+---
+
+## Why it is fast
+
+Three decisions, each with a number behind it. The full table is in
+[`CHANGELOG.md`](CHANGELOG.md); the measurements are reproducible from
+[`bench/results/`](bench/results/).
+
+**It streams instead of building a parse tree.** The obvious implementation
+deserialises `stats.json` into a `serde_json::Value` and then walks it. That value
+is a tree of boxed maps and owned strings, and on the 1 GB fixture it cost about
+550 MB before any analysis started. Modules enter the graph one at a time instead,
+so the document is never resident. Peak stays at 376 MB against a 400 MB ceiling.
+
+**It builds an index instead of scanning.** Matching each module to its source was
+O(modules × sources): 2.5 billion comparisons, 73.8 seconds on the fused
+benchmark. A suffix index built once per asset turns the lookup into a hash, and
+the same benchmark drops to 4.94 seconds. A property test asserts the index and the
+original scan agree on every awkward case, so it is the same rule with a lookup
+table rather than a second implementation.
+
+**It shares what repeats.** A large build has hundreds of thousands of modules and
+a few hundred packages. Package references are interned, so every module in a
+package points at one allocation. On the 1 GB fixture that was worth about 70 MB.
+
+There is no `unsafe` in any of it — `#![forbid(unsafe_code)]` is enforced by the
+compiler, so there is no hand-written SIMD and no unchecked indexing. The
+bottleneck was never arithmetic. It was allocation and IO.
+
+## It finds code nothing else can account for
+
+The join between a bundler's module graph and a source map is the part no existing
+tool does. `webpack-bundle-analyzer` reads a graph, `source-map-explorer` reads a
+map, and neither reconciles them.
+
+Nopeat does, and whatever fails to reconcile is reported rather than hidden:
+
+- **Ghost code** — declared by the bundler, attributed to no source file. Code that
+  will ship to production and that no one on the team has traced back.
+- **Hidden code** — bytes in the bundle that map back to no module. Minifier
+  output, injected polyfills, the bundler's own runtime.
+
+Both show up in the report as first-class rows, not as a footnote. Ghost code
+needs a declared graph to be defined against, so with a bare build folder it is
+reported as undetectable (`NPT0051`) instead of as a reassuring zero.
+
+## サポートするバンドラー
+
+| バンドラー | Nopeat が読むもの | `dist/` + `*.map` が要る? | ゴーストコード検出 |
+|---|---|---|---|
+| **webpack** 4 / 5 | `stats.json` | 不要 | あり |
+| **rspack** | `stats.json`（同じスキーマ） | 不要 | あり |
+| **esbuild** | `metafile.json`、または出力フォルダのみ | `--metafile` なら不要 | `--metafile` があればあり |
+| **Vite** | 出力フォルダとソースマップ | 必要 | `--stats` 出力を有効にする必要あり |
+| **Rollup** | 出力フォルダとソースマップ | 必要 | `stats.json` が必要 |
+| **Parcel** | 出力フォルダとソースマップ | 必要 | `stats.json` が必要 |
+| **tsup / esbuild ラッパー** | 出力フォルダとソースマップ | 必要 | `stats.json` が必要 |
+| **Angular / Next.js / Nuxt / SvelteKit** | それらが出力するもの（webpack か vite のビルド） | 場合による | 場合による'
+## 問題
+
+バンドル解析ツールをビルドに向けて差し出すと、メモリが足りないか、1 分かかり、
+そして再利用できない図が返ってきます。`webpack-bundle-analyzer` は `stats.json` 全体を
+JS ヒープに載せます。363 MB のビルドでは、それで「これ有多大？」に答えるために
+**63.6 秒と 2.3 GB**。ツリーマップを描き終えても、本当にコストになっている二つのことは
+依然として答えられません（[後述](#ゴーストコードと隠しコード)）。
+
+Nopeat は stats をストリームで読み、生成されたバイトを実測し、source map を
+モジュールグラフに join し、使った次元を明示します。
+
+## 実測値
+
+フルパイプライン — stats のパース、ディスク上の全アセットの実測、source map の統合、
+レポートの生成。合成 fixture、参照マシンで 3 回実行の中央値。
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/chart-pipeline-dark.svg">
+  <img alt="Nopeat と webpack-bundle-analyzer を比較した横棒グラフ。所要時間: 363 MB の stats で 1.87 s 対 63.6 s、1 GB で 6.14 s 対 176.3 s。ピークメモリ: 127 MB 対 2,295 MB、および 376 MB 対 1,437 MB。" src="docs/assets/chart-pipeline-light.svg" width="100%">
+</picture>
+
+| 入力 | Nopeat | webpack-bundle-analyzer | 比 |
+|---|---|---|---|
+| 363 MB `stats.json`、154,379 モジュール | **1.87 s / 127 MB** | 63.6 s / 2,295 MB | **34 倍速く、18 分の 1** |
+| 1 GB `stats.json`、445,602 モジュール | **6.14 s / 376 MB** | 176.3 s / 1,437 MB | 29 倍速く、3.8 分の 1 |
+
+Source map の帰属を、map に含まれる source 数で見たもの。これが大きな map を参照ツールで
+扱えなくしている超線形性です。**データは 5 倍なのに時間は 30 倍になり**、こちらはほぼ直線です。
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/chart-source-maps-dark.svg">
+  <img alt="source 数に対する source map 帰属の時間とメモリの両対数グラフ。source-map-explorer は実ビルドの preact（12 source）の 0.25 s から 50,000 source の 562 s へ。Nopeat は 7 ms から 209 ms へ。50,000 source でのメモリは 642 MB 対 67 MB。" src="docs/assets/chart-source-maps-light.svg" width="100%">
+</picture>
+
+ここにある数値はすべて `bench/` のハーネスで再現でき、原材料の記録もコミットされています:
+[`docs/assets/charts-data.json`](docs/assets/charts-data.json) が出所を一覧し、
+[証跡ログ](ARCHITECTURE.md) が取得セッションを示します。
+
+## ゴーストコードと隠しコード
+
+参照ツールのどちらにも出せない二つの診断です。Nopeat の本当の新しさです。
+
+- **ゴーストコード** — バンドラーが宣言してバンドルしたのに、**どの source map にも
+  説明が無い**モジュール。tree-shaking の取りこぼし、あるいは map 無しのアセット。
+  成果物には入っているのに、どのサイズレポートにも現れません。
+- **隠しコード** — **どのモジュールにも属さない**生成バイト。インライン化されたコード片、
+  `eval`、バンドラーが注入した polyfill。成果物には入っているのに、どのモジュールの
+  サイズにも属しません。
+
+Nopeat は各ソースのバイト配分をそれを生み出したモジュールへ畳み込み、帳尻が合わなかった
+残りを丸め誤差ではなく診断に変えます:
+
+```
+$ nopeat ./dist
+dist  ·  50000 modules  ·  1 assets  ·  0 packages  ·  ingest 2143 ms  ·  total 2845 ms  ·  dimension attributed
+fusion: 1 map(s) · coverage 100% · 50000/50000 modules attributed · ghost code needs a stats.json to detect · 0 hidden source(s) (0 KB)
+wrote dist/report.html (0.1 MB), detail in a companion script (loaded on demand)
+```
+
+そして合わなかったときは、どちらの方向にズレたかを明示します。2 アセットのうち 1 つだけ
+map を持つビルドの場合:
+
+```
+$ nopeat ./dist
+dist  ·  22 modules  ·  2 assets  ·  11 packages  ·  ingest 4 ms  ·  total 6 ms  ·  dimension parsed
+fusion: 1 map(s) · coverage 47% · 0/22 modules attributed · 22 ghost (83 KB of declared) · 3 hidden source(s) (39 KB)
+```
+
+`dimension attributed` ではなく `dimension parsed` です。半分のビルドに map が無いので、
+ground truth の次元は取り消され、レポートの 1 行目にそう書かれています。両者を
+こっそり平均するツールは、どの測定にも属さない数字を報告してしまいます。
+
+帰属は実際の join key 上の最長サフィックス一致で行います
+（[`unified-graph.md`](docs/schema/unified-graph.md)）。内容ハッシュは**使いません**。
+修正後のサイズ合計はアセット合計との不変条件で検証し、勝手に丸めずに loud に失敗します
+（`NPT0042`）。
+
+## レポート
+
+<p align="center">
+  <img alt="Nopeat の HTML レポート: パッケージ別の squarified treemap で 400 パッケージ中最大の 40 を表示、検索可能なモジュール一覧、3 つのグルーピング軸、ライトとダークのテーマ。" src="docs/assets/treemap-large.svg" width="100%">
+</p>
+
+<sub>合成 fixture の 400 パッケージのうち最大の 40 パッケージ：1,500 アセット、
+8,041 モジュール、サイズはバンドラーが宣言した値です。ツール自身の graph payload から
+`bench/harness/render-treemap.py` が描画しており、スクリーンショットではありません。
+そのためラベルはツールの出力そのものです。CI が再生成し、差分があれば失敗します。
+HTML レポートにはさらに検索、3 つのグルーピング軸、モジュール単位の内訳、
+ライト/ダーク、そしてネットワーク通信ゼロが含まれます。</sub>
+
+## インストール
+
+**まだ公開していません。** npm に `nopeat` はなく、インストールできる crate もないため、
+`npx nopeat` と `cargo install nopeat-cli` は現在どちらも動きません。本 README は
+それを提供しません。ソースからビルドしてください：
+
+```bash
+git clone https://github.com/Nopeat/Nopeat.git
+cd nopeat
+cargo build --release
+./target/release/nopeat ./dist
+```
+
+`v*` タグを push すると、リリースワークフローが `ARCHITECTURE.md release-and-ci.md` §2 の順で
+公開します：まずバイナリを GitHub リリースへ、次に `nopeat-core` を crates.io へ、
+最後に npm ラッパーを —— npm の名前は最も希少な資源なので最後に使います。
+npm と crates.io のバッジ、および 2 つのインストールコマンドは、`repo-links.json` を
+埋めるコミットで戻ります。npm ラッパーは書き込みや実行の前に `checksums.txt` を検証します。
+
+## 使い方
+
+```bash
+nopeat ./dist                      # ディレクトリ: stats + assets + *.map
+nopeat ./dist/stats.json           # stats ファイル単体
+nopeat ./dist/metafile.json        # esbuild metafile
+
+nopeat ./dist --budget nopeat.config.json   # 超過時は終了コード 1
+nopeat ./dist --mode json > sizes.json          # CI や BI 用
+nopeat ./dist --mode csv  > sizes.csv
+nopeat ./dist/map.js.map --bench-map            # 帰属のみ計測
+```
+
+```jsonc
+// nopeat.config.json
+{
+  "limits": [
+    { "scope": "total",   "max": 1500000 },
+    { "scope": "chunk",   "match": "vendor", "max": 800000 },
+    { "scope": "package", "match": "moment", "max": 250000, "dimension": "gzip" }
+  ]
+}
+```
+
+<details>
+<summary>終了コード — CI のゲートはこの契約の上に成り立っています</summary>
+
+| コード | 意味 |
+|---|---|
+| 0 | 解析完了、すべてのバジェットを満たした |
+| 1 | 解析完了、バジェット超過あり（`NPT0040`） |
+| 2 | コマンドライン引数が不正 |
+| 3 | 入力が読めない、または一致対象の無いバジェット規則がある |
+
+一致対象の無い規則は**意図的に**エラーです。規則の書き間違いで CI が黙って
+通ってよいはずがありません。
+
+</details>
+
+## 現状
+
+1.0 前です。この表は正直版です。測定していないものは、そう記載しています。
+
+| 領域 | 状態 |
+|---|---|
+| stats 取込、サイズ帰属、source map、統合、レポート、バジェット、JSON/CSV | 実装済み・測定済み・CI でゲート |
+| 1 GB 取込の所要時間 | **未達**: 4.40 s（目標 3 s、メモリは 350 MB で余裕） |
+| レポートの初回描画 / 30 fps | **未検証** — CI にブラウザが無い。代わりに 154,379 モジュールで 1.56 MB / 1.27 s を測定 |
+| WASM ビルド、WebGL レンダラ | 未着手 |
+| Windows / macOS / Linux | プラットフォーム固有のコード分岐なし。Windows でのみテスト |
+| Rust テスト 57 件、npm テスト 4 件、生成レイアウト 1,018 ケース | すべて green |
+
+唯一の未達項目は、原因は [CHANGELOG](CHANGELOG.md) に明記しています:
+445,602 要素のモジュール配列に対する `serde_json` の DOM カーソルです。
+
+## なぜこう作るのか
+
+すべての設計判断は、好みではなく測定から生まれています。
+
+| 判断 | 根拠 |
+|---|---|
+| ストリーミング JSON、`simd-json` ではない | `simd-json` は文書全体をメモリに要求します。それはまさに壊そうとしている天井です（[ADR-0001](ARCHITECTURE.md)） |
+| 自前の HTML レポート、viewer の vendor はしない | 制御できない viewer は fork 無しでは融合データを表示できません（[ADR-0002](ARCHITECTURE.md)） |
+| サイズと gzip には rayon | 25,600 アセット: 直列 2,177 ms → **342 ms**（6.4 倍）。パースは元々ボトルネックではありません |
+| join にサフィックス索引 | モジュールごとに全ソースを走査すると 25 億回の比較。索引で 73.8 s → 4.9 s |
+| 正確な件数、有限のリスト | 未マップモジュールごとに 1 件持つことで、`summary` と書かれたフィールドに 47 MB 使っていました |
+| fixture より性質テスト | 実際の欠陥を 2 つ捕まえました — モジュールサイズが**縮小しない**ことと、範囲外の source index で帰属が黙って消えること。どちらもリポジトリ内の fixture では見えませんでした |
+
+###  만들らなかったものとその理由
+
+|  Verworfen | Grund |
+|---|---|
+| WBA の viewer を取り込む | fork 無しでは融合データを表示できず、fork すれば UI の面倒は自分たちのもの |
+| `simd-json` | 文書全体をメモリに要求します。それは問題そのもの |
+| Phase 1 で WebGL treemap | 10k ノードは Canvas 2D で十分。レンダラ差し替えは安定した payload の後の Phase 2 |
+| 汎用ビルドツール | 実測された痛みはメモリ天井、項目ごとのプロセス、または超線形アルゴリズム。すべて揃っています |
+
+## ドキュメント
+
+- [プロダクト要件](ARCHITECTURE.md) · [証跡ログ](ARCHITECTURE.md) · [アーキテクチャ](ARCHITECTURE.md)
+- [ベンチマークと目標](docs/schema/bench-spec.md) · [整合性とテスト](docs/schema/bench-spec.md) · [リリースと CI](CONTRIBUTING.md)
+- [契約](docs/schema/unified-graph.md) — payload schema、CLI 仕様、ベンチプロトコル、i18n 規則、オーナーシップ
+- [ADR](ARCHITECTURE.md)  · [リスク一覧](docs/schema/bench-spec.md) · [ロードマップ](docs/schema/bench-spec.md)
+
+> 日本語版ドキュメントは翻訳中です。英語版が**正本**であり、
+> `node bench/harness/check-i18n.mjs` が 4 言語の乖離を検査します。
+
+## 貢献する
+
+すべての変更は測定を同梱するか、測定が不要である理由を議論します。
+[CONTRIBUTING.md](CONTRIBUTING.md) をご覧ください。ゲートは `cargo test`、
+`clippy -D warnings`（pedantic 込み）、`cargo fmt`、70% のカバレッジ下限、
+`webpack-bundle-analyzer` との整合性比較、4 言語ドキュメント検査です。
+[行動規範](CODE_OF_CONDUCT.md) · [セキュリティ方針](SECURITY.md)
+
+## ライセンス
+
+MIT（[LICENSE-MIT](LICENSE-MIT)）または Apache-2.0（[LICENSE-APACHE](LICENSE-APACHE)）、お好きな方を。
+
+---
+
+<div align="center">
+  <sub>
+    公開で開発中。数値への異議は
+    <a href="https://github.com/Nopeat/Nopeat/issues">issues</a> へどうぞ。
+    ベンチマークを意味あるままに保つ唯一の手段です。
+  </sub>
+</div>

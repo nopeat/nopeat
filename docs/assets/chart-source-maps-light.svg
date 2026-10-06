@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="368" viewBox="0 0 880 368" role="img" aria-labelledby="t d">
+  <title id="t">Source map attribution against source-map-explorer</title>
+  <desc id="d">Two log-log panels. Left, wall clock in seconds. Right, peak memory in megabytes. Against the number of sources in the map. The tinted band between the two lines is labelled with the multiple at each point. At 50,000 sources source-map-explorer costs 2,690 times the time and 9.58 times the memory: 562 s against 209 ms, and 642 MB against 67 MB.</desc>
+  <rect width="880" height="368" fill="#ffffff"/>
+  <text x="0.00" y="28.00" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="16" font-weight="700" fill="#111827" text-anchor="start">Source map attribution, against the number of sources in the map</text>
+  <text x="0.00" y="47.00" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="11.5" font-weight="400" fill="#6b7280" text-anchor="start">log scales · the band between the lines is labelled with its multiple, because a step up this axis is a multiple, not a constant</text>
+  <text x="84.00" y="82.00" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="13.5" font-weight="600" fill="#111827" text-anchor="start">Wall clock</text>
+  <text x="156.80" y="82.00" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="11" font-weight="400" fill="#6b7280" text-anchor="start">seconds, log scale</text>
+  <line x1="84.00" y1="256.65" x2="444.00" y2="256.65" stroke="#e5e7eb" stroke-width="1.0"/>
+  <text x="74.00" y="260.65" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10" font-weight="400" fill="#6b7280" text-anchor="end">10 ms</text>
+  <line x1="84.00" y1="225.03" x2="444.00" y2="225.03" stroke="#e5e7eb" stroke-width="1.0"/>
+  <text x="74.00" y="229.03" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10" font-weight="400" fill="#6b7280" text-anchor="end">100 ms</text>
+  <line x1="84.00" y1="193.41" x2="444.00" y2="193.41" stroke="#e5e7eb" stroke-width="1.0"/>
+  <text x="74.00" y="197.41" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10" font-weight="400" fill="#6b7280" text-anchor="end">1 s</text>
+  <line x1="84.00" y1="161.79" x2="444.00" y2="161.79" stroke="#e5e7eb" stroke-width="1.0"/>
+  <text x="74.00" y="165.79" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10" font-weight="400" fill="#6b7280" text-anchor="end">10 s</text>
+  <line x1="84.00" y1="130.17" x2="444.00" y2="130.17" stroke="#e5e7eb" stroke-width="1.0"/>
+  <text x="74.00" y="134.17" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10" font-weight="400" fill="#6b7280" text-anchor="end">100 s</text>
+  <line x1="96.99" y1="100.00" x2="96.99" y2="268.00" stroke="#e5e7eb" stroke-width="1.0" stroke-dasharray="2 3"/>
+  <text x="96.99" y="286.00" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10" font-weight="400" fill="#6b7280" text-anchor="middle">10</text>
+  <line x1="182.85" y1="100.00" x2="182.85" y2="268.00" stroke="#e5e7eb" stroke-width="1.0" stroke-dasharray="2 3"/>
+  <text x="182.85" y="286.00" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10" font-weight="400" fill="#6b7280" text-anchor="middle">100</text>
+  <line x1="268.72" y1="100.00" x2="268.72" y2="268.00" stroke="#e5e7eb" stroke-width="1.0" stroke-dasharray="2 3"/>
+  <text x="268.72" y="286.00" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10" font-weight="400" fill="#6b7280" text-anchor="middle">1k</text>
+  <line x1="354.58" y1="100.00" x2="354.58" y2="268.00" stroke="#e5e7eb" stroke-width="1.0" stroke-dasharray="2 3"/>
+  <text x="354.58" y="286.00" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10" font-weight="400" fill="#6b7280" text-anchor="middle">10k</text>
+  <line x1="414.60" y1="100.00" x2="414.60" y2="268.00" stroke="#e5e7eb" stroke-width="1.0" stroke-dasharray="2 3"/>
+  <text x="414.60" y="286.00" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10" font-weight="400" fill="#6b7280" text-anchor="middle">50k</text>
+  <line x1="84.00" y1="268.00" x2="444.00" y2="268.00" stroke="#d1d5db" stroke-width="1.0"/>
+  <text x="264.00" y="306.00" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="11" font-weight="400" fill="#6b7280" text-anchor="middle">sources in the map</text>
+  <polygon points="103.79,261.55 354.58,235.69 414.60,214.90 414.60,106.45 354.58,153.43 103.79,212.34" fill="#1d4ed8" fill-opacity="0.1"/>
+  <line x1="103.79" y1="261.55" x2="103.79" y2="212.34" stroke="#1d4ed8" stroke-width="1.2"/>
+  <text x="103.79" y="240.94" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10.5" font-weight="600" fill="#1e40af" text-anchor="middle" stroke="#ffffff" stroke-width="3" paint-order="stroke">36×</text>
+  <line x1="354.58" y1="235.69" x2="354.58" y2="153.43" stroke="#1d4ed8" stroke-width="1.2"/>
+  <text x="354.58" y="198.56" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10.5" font-weight="600" fill="#1e40af" text-anchor="middle" stroke="#ffffff" stroke-width="3" paint-order="stroke">400×</text>
+  <line x1="414.60" y1="214.90" x2="414.60" y2="106.45" stroke="#1d4ed8" stroke-width="1.2"/>
+  <text x="414.60" y="164.68" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10.5" font-weight="600" fill="#1e40af" text-anchor="middle" stroke="#ffffff" stroke-width="3" paint-order="stroke">2,690×</text>
+  <polyline points="103.79,212.34 354.58,153.43 414.60,106.45" fill="none" stroke="#cbd5e1" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="103.79" cy="212.34" r="3.60" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.8"/>
+  <circle cx="354.58" cy="153.43" r="3.60" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.8"/>
+  <circle cx="414.60" cy="106.45" r="3.60" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.8"/>
+  <text x="404.60" y="97.45" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="11" font-weight="400" fill="#64748b" text-anchor="end" stroke="#ffffff" stroke-width="3" paint-order="stroke">source-map-explorer · 562 s</text>
+  <polyline points="103.79,261.55 354.58,235.69 414.60,214.90" fill="none" stroke="#1d4ed8" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="103.79" cy="261.55" r="4.40" fill="#ffffff" stroke="#1d4ed8" stroke-width="2.2"/>
+  <circle cx="354.58" cy="235.69" r="4.40" fill="#ffffff" stroke="#1d4ed8" stroke-width="2.2"/>
+  <circle cx="414.60" cy="214.90" r="4.40" fill="#ffffff" stroke="#1d4ed8" stroke-width="2.2"/>
+  <text x="404.60" y="205.90" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="11" font-weight="600" fill="#1e40af" text-anchor="end" stroke="#ffffff" stroke-width="3" paint-order="stroke">Nopeat · 209 ms</text>
+  <text x="496.00" y="82.00" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="13.5" font-weight="600" fill="#111827" text-anchor="start">Peak memory</text>
+  <text x="589.05" y="82.00" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="11" font-weight="400" fill="#6b7280" text-anchor="start">megabytes, log scale</text>
+  <line x1="496.00" y1="232.86" x2="856.00" y2="232.86" stroke="#e5e7eb" stroke-width="1.0"/>
+  <text x="486.00" y="236.86" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10" font-weight="400" fill="#6b7280" text-anchor="end">10 MB</text>
+  <line x1="496.00" y1="166.82" x2="856.00" y2="166.82" stroke="#e5e7eb" stroke-width="1.0"/>
+  <text x="486.00" y="170.82" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10" font-weight="400" fill="#6b7280" text-anchor="end">100 MB</text>
+  <line x1="496.00" y1="100.77" x2="856.00" y2="100.77" stroke="#e5e7eb" stroke-width="1.0"/>
+  <text x="486.00" y="104.77" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10" font-weight="400" fill="#6b7280" text-anchor="end">1,000 MB</text>
+  <line x1="508.99" y1="100.00" x2="508.99" y2="268.00" stroke="#e5e7eb" stroke-width="1.0" stroke-dasharray="2 3"/>
+  <text x="508.99" y="286.00" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10" font-weight="400" fill="#6b7280" text-anchor="middle">10</text>
+  <line x1="594.85" y1="100.00" x2="594.85" y2="268.00" stroke="#e5e7eb" stroke-width="1.0" stroke-dasharray="2 3"/>
+  <text x="594.85" y="286.00" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10" font-weight="400" fill="#6b7280" text-anchor="middle">100</text>
+  <line x1="680.72" y1="100.00" x2="680.72" y2="268.00" stroke="#e5e7eb" stroke-width="1.0" stroke-dasharray="2 3"/>
+  <text x="680.72" y="286.00" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10" font-weight="400" fill="#6b7280" text-anchor="middle">1k</text>
+  <line x1="766.58" y1="100.00" x2="766.58" y2="268.00" stroke="#e5e7eb" stroke-width="1.0" stroke-dasharray="2 3"/>
+  <text x="766.58" y="286.00" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10" font-weight="400" fill="#6b7280" text-anchor="middle">10k</text>
+  <line x1="826.60" y1="100.00" x2="826.60" y2="268.00" stroke="#e5e7eb" stroke-width="1.0" stroke-dasharray="2 3"/>
+  <text x="826.60" y="286.00" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10" font-weight="400" fill="#6b7280" text-anchor="middle">50k</text>
+  <line x1="496.00" y1="268.00" x2="856.00" y2="268.00" stroke="#d1d5db" stroke-width="1.0"/>
+  <text x="676.00" y="306.00" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="11" font-weight="400" fill="#6b7280" text-anchor="middle">sources in the map</text>
+  <polygon points="515.79,254.52 766.58,247.51 826.60,178.30 826.60,113.48 766.58,137.59 515.79,200.41" fill="#1d4ed8" fill-opacity="0.1"/>
+  <line x1="515.79" y1="254.52" x2="515.79" y2="200.41" stroke="#1d4ed8" stroke-width="1.2"/>
+  <text x="515.79" y="231.46" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10.5" font-weight="600" fill="#1e40af" text-anchor="middle" stroke="#ffffff" stroke-width="3" paint-order="stroke">6.6×</text>
+  <line x1="766.58" y1="247.51" x2="766.58" y2="137.59" stroke="#1d4ed8" stroke-width="1.2"/>
+  <text x="766.58" y="196.55" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10.5" font-weight="600" fill="#1e40af" text-anchor="middle" stroke="#ffffff" stroke-width="3" paint-order="stroke">46.2×</text>
+  <line x1="826.60" y1="178.30" x2="826.60" y2="113.48" stroke="#1d4ed8" stroke-width="1.2"/>
+  <text x="826.60" y="149.89" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10.5" font-weight="600" fill="#1e40af" text-anchor="middle" stroke="#ffffff" stroke-width="3" paint-order="stroke">9.58×</text>
+  <polyline points="515.79,200.41 766.58,137.59 826.60,113.48" fill="none" stroke="#cbd5e1" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="515.79" cy="200.41" r="3.60" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.8"/>
+  <circle cx="766.58" cy="137.59" r="3.60" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.8"/>
+  <circle cx="826.60" cy="113.48" r="3.60" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.8"/>
+  <text x="816.60" y="104.48" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="11" font-weight="400" fill="#64748b" text-anchor="end" stroke="#ffffff" stroke-width="3" paint-order="stroke">source-map-explorer · 642 MB</text>
+  <polyline points="515.79,254.52 766.58,247.51 826.60,178.30" fill="none" stroke="#1d4ed8" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="515.79" cy="254.52" r="4.40" fill="#ffffff" stroke="#1d4ed8" stroke-width="2.2"/>
+  <circle cx="766.58" cy="247.51" r="4.40" fill="#ffffff" stroke="#1d4ed8" stroke-width="2.2"/>
+  <circle cx="826.60" cy="178.30" r="4.40" fill="#ffffff" stroke="#1d4ed8" stroke-width="2.2"/>
+  <text x="816.60" y="169.30" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="11" font-weight="600" fill="#1e40af" text-anchor="end" stroke="#ffffff" stroke-width="3" paint-order="stroke">Nopeat · 67 MB</text>
+  <text x="0.00" y="334.00" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10.5" font-weight="400" fill="#6b7280" text-anchor="start">the 12-source point is a real preact build; 10,000 and 50,000 are synthetic · median of 3 runs, except the single 9.4-minute reference run</text>
+  <text x="0.00" y="352.00" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif" font-size="10.5" font-weight="400" fill="#6b7280" text-anchor="start">at 50,000 sources source-map-explorer costs 2,690 times the time and 9.58 times the memory of Nopeat</text>
+</svg>

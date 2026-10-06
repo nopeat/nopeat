@@ -1,0 +1,13 @@
+# No dependencies.
+#
+# The figures used to be drawn with matplotlib, which meant the pixels were a
+# function of matplotlib's version as well as of the data. The reproducibility
+# gate then needed a pin, and the pin needed explaining, because a version bump
+# elsewhere could change a committed figure.
+#
+# `harness/make-charts.py` now writes the SVG directly with the standard library.
+# A fresh run depends on the repository alone, so the diff in CI means what it
+# says.
+#
+# Nothing else in bench/ needs a third-party package either: the other harnesses
+# use node and the cargo test suite covers the Rust.
