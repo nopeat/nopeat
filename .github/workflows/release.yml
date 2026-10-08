@@ -24,7 +24,7 @@ jobs:
     name: verify the tag
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
       - uses: dtolnay/rust-toolchain@stable
@@ -80,7 +80,7 @@ jobs:
             os: windows-latest
             archive: zip
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
       - uses: dtolnay/rust-toolchain@stable
@@ -128,7 +128,7 @@ jobs:
     needs: [verify, binaries]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
       - uses: actions/download-artifact@v4
@@ -155,7 +155,7 @@ jobs:
     needs: [verify, binaries]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
       - uses: actions/setup-node@v4
@@ -192,7 +192,7 @@ jobs:
     # always fail on one of them.
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - name: publish nopeat-core
         run: |
