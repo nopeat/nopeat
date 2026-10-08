@@ -51,7 +51,7 @@ table rather than a second implementation.
 
 **It shares what repeats.** A large build has hundreds of thousands of modules and
 a few hundred packages. Package references are interned, so every module in a
-package points at one allocation. On the 1 GB fixture that was worth about 70 MB.
+package points at one allocation. On the 1 GB fixture that was worth about 82 MB.
 
 There is no `unsafe` in any of it — `#![forbid(unsafe_code)]` is enforced by the
 compiler, so there is no hand-written SIMD and no unchecked indexing. The
@@ -244,8 +244,9 @@ nopeat ./dist/map.js.map --bench-map            # 帰属のみ計測
 | 1 GB 取込の所要時間 | **未達**: 4.40 s（目標 3 s、メモリは 350 MB で余裕） |
 | レポートの初回描画 / 30 fps | **未検証** — CI にブラウザが無い。代わりに 154,379 モジュールで 1.56 MB / 1.27 s を測定 |
 | WASM ビルド、WebGL レンダラ | 未着手 |
-| Windows / macOS / Linux | プラットフォーム固有のコード分岐なし。Windows でのみテスト |
-| Rust テスト 57 件、npm テスト 4 件、生成レイアウト 1,018 ケース | すべて green |
+| Linux / macOS runner | プラットフォーム固有の分岐はない。CI は Windows のみで実行 |
+| tests | 82 Rust, 4 npm, 1,018 generated layout cases | すべて green |
+| coverage | カバレッジ 82.19% of lines, against a 70% floor |
 
 唯一の未達項目は、原因は [CHANGELOG](CHANGELOG.md) に明記しています:
 445,602 要素のモジュール配列に対する `serde_json` の DOM カーソルです。
@@ -286,7 +287,7 @@ nopeat ./dist/map.js.map --bench-map            # 帰属のみ計測
 
 すべての変更は測定を同梱するか、測定が不要である理由を議論します。
 [CONTRIBUTING.md](CONTRIBUTING.md) をご覧ください。ゲートは `cargo test`、
-`clippy -D warnings`（pedantic 込み）、`cargo fmt`、70% のカバレッジ下限、
+`clippy -D warnings`（pedantic 込み）、`cargo fmt`、82% のカバレッジ下限、
 `webpack-bundle-analyzer` との整合性比較、4 言語ドキュメント検査です。
 [行動規範](CODE_OF_CONDUCT.md) · [セキュリティ方針](SECURITY.md)
 

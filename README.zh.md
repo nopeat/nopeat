@@ -50,7 +50,7 @@ table rather than a second implementation.
 
 **It shares what repeats.** A large build has hundreds of thousands of modules and
 a few hundred packages. Package references are interned, so every module in a
-package points at one allocation. On the 1 GB fixture that was worth about 70 MB.
+package points at one allocation. On the 1 GB fixture that was worth about 82 MB.
 
 There is no `unsafe` in any of it — `#![forbid(unsafe_code)]` is enforced by the
 compiler, so there is no hand-written SIMD and no unchecked indexing. The
@@ -244,8 +244,9 @@ nopeat ./dist/map.js.map --bench-map            # 只跑归因，并计时
 | 1 GB 摄取的墙钟时间 | **未达标**：4.40 s，目标 3 s（内存 350 MB，很宽裕） |
 | 报告首屏渲染 / 30 fps | **未验证**——CI 里没有浏览器；改为测量 154,379 模块下 1.56 MB、1.27 s |
 | WASM 构建、WebGL 渲染器 | 尚未开始 |
-| Windows / macOS / Linux | 没有平台相关的代码分支，只在 Windows 上验证 |
-| 57 个 Rust 测试、4 个 npm 测试、1,018 个生成的布局用例 | 全绿 |
+| Linux / macOS runner | 没有平台相关的代码分支；CI 只在 Windows 上运行 |
+| tests | 82 Rust, 4 npm, 1,018 generated layout cases | 全绿 |
+| coverage | 覆盖率 82.19% of lines, against a 70% floor |
 
 唯一那个未达标项，在 [CHANGELOG](CHANGELOG.md) 里写明了原因：瓶颈是 `serde_json` 的 DOM 游标
 在 445,602 个元素的模块数组上。
@@ -286,7 +287,7 @@ nopeat ./dist/map.js.map --bench-map            # 只跑归因，并计时
 
 每一次改动都要么附带一次测量，要么给出"为什么这次不需要测量"的论证。详见
 [CONTRIBUTING.md](CONTRIBUTING.md)；门禁是 `cargo test`、`clippy -D warnings`（含 pedantic）、
-`cargo fmt`、70% 覆盖率下限、与 `webpack-bundle-analyzer` 的一致性比对，以及四语文档检查。
+`cargo fmt`、82% 覆盖率下限、与 `webpack-bundle-analyzer` 的一致性比对，以及四语文档检查。
 [行为准则](CODE_OF_CONDUCT.md) · [安全策略](SECURITY.md)
 
 ## 许可证

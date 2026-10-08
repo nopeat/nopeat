@@ -4,8 +4,8 @@
 
 # Nopeat
 
-**Bundle analysis in Rust. It reads 1 GB of `stats.json` in 6 seconds inside
-376 MB, where webpack-bundle-analyzer needs 176 seconds and 1.4 GB.**
+**Bundle analysis in Rust. On a 1 GB `stats.json` with 445,602 modules it takes
+6.1 s and 376 MB, where webpack-bundle-analyzer takes 176 s and 1.4 GB.**
 
 One binary, no Node runtime, no browser. Give it a `stats.json`, an esbuild
 `metafile.json`, or just a build folder, and every byte comes back attributed to
@@ -228,7 +228,9 @@ Pre-1.0. Anything unmeasured says so.
 | report first paint / 30 fps | **unverified** — no browser in CI; measured instead as 1.56 MB and 1.27 s at 154,379 modules |
 | WASM build, WebGL renderer | not started |
 | crates.io, npm | not published |
-| tests | 70 Rust, 4 npm, 1,018 generated layout cases |
+| tests | 82 Rust, 4 npm, 1,018 generated layout cases |
+| coverage | 82.19% of lines, against a 70% floor |
+| Linux and macOS runners | not exercised; CI runs on Windows only |
 
 The one miss is `serde_json`'s DOM cursor over a 445,602-element module array, stated
 in full in the [changelog](CHANGELOG.md).

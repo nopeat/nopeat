@@ -50,7 +50,7 @@ table rather than a second implementation.
 
 **It shares what repeats.** A large build has hundreds of thousands of modules and
 a few hundred packages. Package references are interned, so every module in a
-package points at one allocation. On the 1 GB fixture that was worth about 70 MB.
+package points at one allocation. On the 1 GB fixture that was worth about 82 MB.
 
 There is no `unsafe` in any of it — `#![forbid(unsafe_code)]` is enforced by the
 compiler, so there is no hand-written SIMD and no unchecked indexing. The
@@ -252,8 +252,9 @@ Vor 1.0, und das ist die ehrliche Tabelle. Was nicht gemessen wurde, steht als s
 | Laufzeit der 1-GB-Eingabe | **verfehlt**: 4,40 s gegen ein Ziel von 3 s (Speicher mit 350 MB unkritisch) |
 | Erster Report-Paint / 30 fps | **unverifiziert** — kein Browser in CI; stattdessen gemessen: 1,56 MB und 1,27 s bei 154.379 Modulen |
 | WASM-Build, WebGL-Renderer | nicht begonnen |
-| Windows / macOS / Linux | keine plattformsspezifischen Codepfade; getestet wird auf Windows |
-| 57 Rust-Tests, 4 npm-Tests, 1.018 erzeugte Layout-Fälle | grün |
+| Linux- / macOS-Runner | keine plattformspezifischen Verzweigungen; CI läuft nur unter Windows |
+| tests | 82 Rust, 4 npm, 1,018 generated layout cases | alles grün |
+| coverage | Abdeckung 82.19% of lines, against a 70% floor |
 
 Die einzige Verfehlung steht mit Ursache im [CHANGELOG](CHANGELOG.md): es ist der
 DOM-Cursor von `serde_json` über ein Modul-Array mit 445.602 Elementen.
@@ -295,7 +296,7 @@ Jede Entwurfsentscheidung folgt einer Messung, keiner Vorliebe.
 Jede Änderung bringt eine Messung mit oder ein Argument, warum sie keine haben kann.
 Siehe [CONTRIBUTING.md](CONTRIBUTING.md); die Gates sind `cargo test`,
 `clippy -D warnings` (inkl. pedantic), `cargo fmt`, eine Coverage-Untergrenze von
-70 %, Parität gegen `webpack-bundle-analyzer` und eine Vier-Sprachen-Dokumentprüfung.
+82 %, Parität gegen `webpack-bundle-analyzer` und eine Vier-Sprachen-Dokumentprüfung.
 [Verhaltenskodex](CODE_OF_CONDUCT.md) · [Sicherheitsrichtlinie](SECURITY.md)
 
 ## Lizenz
