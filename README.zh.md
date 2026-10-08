@@ -143,12 +143,6 @@ source map 归因，横轴是 map 里的 source 数量。这正是让大 map 在
 Nopeat 把每个 source 的字节份额折算回产生它的模块，剩下无法对账的部分变成诊断信息，而
 不是被四舍五入掉：
 
-```
-$ nopeat ./dist
-dist  ·  50000 modules  ·  1 assets  ·  0 packages  ·  ingest 2143 ms  ·  total 2845 ms  ·  dimension attributed
-fusion: 1 map(s) · coverage 100% · 50000/50000 modules attributed · ghost code needs a stats.json to detect · 0 hidden source(s) (0 KB)
-wrote dist/report.html (0.1 MB), detail in a companion script (loaded on demand)
-```
 
 而当它确实对不上账，它会说明是哪个方向不对。下面是两个 asset 里只有一个带 map 的构建：
 
@@ -184,6 +178,27 @@ HTML 报告另外还有搜索、三种分组维度、按模块下钻、明暗主
 请从源码构建：
 
 ```bash
+# Linux and macOS
+curl -L -o nopeat.tar.gz \
+  https://github.com/nopeat/nopeat/releases/download/v2.1.0/nopeat-2.1.0-x86_64-unknown-linux-gnu.tar.gz
+tar -xzf nopeat.tar.gz
+
+# Windows
+curl -L -o nopeat.zip \
+  https://github.com/nopeat/nopeat/releases/download/v2.1.0/nopeat-2.1.0-x86_64-pc-windows-msvc.zip
+
+# or from source
+git clone https://github.com/nopeat/nopeat.git
+cd nopeat
+cargo build --release
+./target/release/nopeat ./dist
+```
+
+```bash
+sha256sum -c checksums.txt
+```
+
+```bash
 git clone https://github.com/Nopeat/Nopeat.git
 cd nopeat
 cargo build --release
@@ -205,7 +220,7 @@ nopeat ./dist/metafile.json        # esbuild metafile
 
 nopeat ./dist --budget nopeat.config.json   # 超限退出码 1
 nopeat ./dist --mode json > sizes.json          # 给 CI 或 BI 用
-nopeat ./dist --mode csv  > sizes.csv
+nopeat ./dist --csv sizes.csv
 nopeat ./dist/map.js.map --bench-map            # 只跑归因，并计时
 ```
 

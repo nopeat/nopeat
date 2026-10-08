@@ -144,12 +144,6 @@ eigentlich Neue an diesem Projekt.
 Nopeat rechnet den Byte-Anteil jeder Quelle den Modulen zu, die sie erzeugt haben,
 und alles, was nicht aufgeht, wird zu einer Diagnose statt zu einem Rundungsfehler:
 
-```
-$ nopeat ./dist
-dist  ·  50000 modules  ·  1 assets  ·  0 packages  ·  ingest 2143 ms  ·  total 2845 ms  ·  dimension attributed
-fusion: 1 map(s) · coverage 100% · 50000/50000 modules attributed · ghost code needs a stats.json to detect · 0 hidden source(s) (0 KB)
-wrote dist/report.html (0.1 MB), detail in a companion script (loaded on demand)
-```
 
 und wenn es nicht aufgeht, sagt es in welche Richtung. Ein Build, bei dem nur eines von
 zwei Assets eine Source Map mitbringt:
@@ -190,6 +184,27 @@ Installieren, also funktionieren `npx nopeat` und `cargo install nopeat-cli`
 heute nicht, und diese README bietet sie nicht an. Aus dem Quellcode bauen:
 
 ```bash
+# Linux and macOS
+curl -L -o nopeat.tar.gz \
+  https://github.com/nopeat/nopeat/releases/download/v2.1.0/nopeat-2.1.0-x86_64-unknown-linux-gnu.tar.gz
+tar -xzf nopeat.tar.gz
+
+# Windows
+curl -L -o nopeat.zip \
+  https://github.com/nopeat/nopeat/releases/download/v2.1.0/nopeat-2.1.0-x86_64-pc-windows-msvc.zip
+
+# or from source
+git clone https://github.com/nopeat/nopeat.git
+cd nopeat
+cargo build --release
+./target/release/nopeat ./dist
+```
+
+```bash
+sha256sum -c checksums.txt
+```
+
+```bash
 git clone https://github.com/Nopeat/Nopeat.git
 cd nopeat
 cargo build --release
@@ -212,7 +227,7 @@ nopeat ./dist/metafile.json        # esbuild-Metafile
 
 nopeat ./dist --budget nopeat.config.json   # Exit 1 bei Überschreitung
 nopeat ./dist --mode json > sizes.json          # für CI oder BI
-nopeat ./dist --mode csv  > sizes.csv
+nopeat ./dist --csv sizes.csv
 nopeat ./dist/map.js.map --bench-map            # nur Zuordnung, mit Zeitmessung
 ```
 

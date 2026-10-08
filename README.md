@@ -160,21 +160,39 @@ network requests.</sub>
 
 ## Install
 
-**Not published yet.** There is no `nopeat` on npm and no crate to install,
-so this README does not offer either command. Build it:
+**Binaries are published; the packages are not.** There is no `nopeat` on npm and no
+crate on crates.io yet, so this section offers neither command. Grab a binary, or
+build it:
 
 ```bash
-git clone https://github.com/Nopeat/Nopeat.git
+# Linux and macOS
+curl -L -o nopeat.tar.gz \
+  https://github.com/nopeat/nopeat/releases/download/v2.1.0/nopeat-2.1.0-x86_64-unknown-linux-gnu.tar.gz
+tar -xzf nopeat.tar.gz
+
+# Windows
+curl -L -o nopeat.zip \
+  https://github.com/nopeat/nopeat/releases/download/v2.1.0/nopeat-2.1.0-x86_64-pc-windows-msvc.zip
+
+# or from source
+git clone https://github.com/nopeat/nopeat.git
 cd nopeat
 cargo build --release
 ./target/release/nopeat ./dist
 ```
 
-A `v*` tag publishes the binaries and checksums to a GitHub release, and the npm
-wrapper after that — it downloads its binary from the release, so publishing the
-package first would put an install command in front of people that 404s. The
-badges and both install one-liners come back in the commit that flips
-`status: unreleased` to `status: released`. The wrapper verifies `checksums.txt`
+Five targets are published for `v2.1.0` — x86-64 and aarch64 for Linux, macOS
+and Windows — each with a sha256 in `checksums.txt`. Verify before running
+anything:
+
+```bash
+sha256sum -c checksums.txt
+```
+
+The npm wrapper is deliberately absent for now. It downloads its binary from
+this release rather than shipping one, so publishing the package before the
+release existed would put an install command in front of people that 404s. The
+installer checks `checksums.txt`
 before writing or executing anything.
 
 ## Use
@@ -228,6 +246,7 @@ Pre-1.0. Anything unmeasured says so.
 | report first paint / 30 fps | **unverified** — no browser in CI; measured instead as 1.56 MB and 1.27 s at 154,379 modules |
 | WASM build, WebGL renderer | not started |
 | crates.io, npm | not published |
+| GitHub release | v2.1.0 published, 5 targets, with sha256 checksums |
 | tests | 82 Rust, 4 npm, 1,018 generated layout cases |
 | coverage | 82.19% of lines, against a 70% floor |
 | Linux and macOS runners | not exercised; CI runs on Windows only |

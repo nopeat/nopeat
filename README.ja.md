@@ -138,12 +138,6 @@ Source map の帰属を、map に含まれる source 数で見たもの。これ
 Nopeat は各ソースのバイト配分をそれを生み出したモジュールへ畳み込み、帳尻が合わなかった
 残りを丸め誤差ではなく診断に変えます:
 
-```
-$ nopeat ./dist
-dist  ·  50000 modules  ·  1 assets  ·  0 packages  ·  ingest 2143 ms  ·  total 2845 ms  ·  dimension attributed
-fusion: 1 map(s) · coverage 100% · 50000/50000 modules attributed · ghost code needs a stats.json to detect · 0 hidden source(s) (0 KB)
-wrote dist/report.html (0.1 MB), detail in a companion script (loaded on demand)
-```
 
 そして合わなかったときは、どちらの方向にズレたかを明示します。2 アセットのうち 1 つだけ
 map を持つビルドの場合:
@@ -183,6 +177,27 @@ HTML レポートにはさらに検索、3 つのグルーピング軸、モジ�
 それを提供しません。ソースからビルドしてください：
 
 ```bash
+# Linux and macOS
+curl -L -o nopeat.tar.gz \
+  https://github.com/nopeat/nopeat/releases/download/v2.1.0/nopeat-2.1.0-x86_64-unknown-linux-gnu.tar.gz
+tar -xzf nopeat.tar.gz
+
+# Windows
+curl -L -o nopeat.zip \
+  https://github.com/nopeat/nopeat/releases/download/v2.1.0/nopeat-2.1.0-x86_64-pc-windows-msvc.zip
+
+# or from source
+git clone https://github.com/nopeat/nopeat.git
+cd nopeat
+cargo build --release
+./target/release/nopeat ./dist
+```
+
+```bash
+sha256sum -c checksums.txt
+```
+
+```bash
 git clone https://github.com/Nopeat/Nopeat.git
 cd nopeat
 cargo build --release
@@ -204,7 +219,7 @@ nopeat ./dist/metafile.json        # esbuild metafile
 
 nopeat ./dist --budget nopeat.config.json   # 超過時は終了コード 1
 nopeat ./dist --mode json > sizes.json          # CI や BI 用
-nopeat ./dist --mode csv  > sizes.csv
+nopeat ./dist --csv sizes.csv
 nopeat ./dist/map.js.map --bench-map            # 帰属のみ計測
 ```
 
