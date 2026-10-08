@@ -1,0 +1,40 @@
+/target
+**/*.rs.bk
+*.pdb
+
+# bench artifacts (fixtures are fetched, not committed)
+/bench/fixtures/repos
+/bench/fixtures/artifacts
+*.stats.json
+*.js.map
+
+# bench/results/ is deliberately NOT ignored. Those files are the evidence
+# trail: every number in the docs cites one, and a measurement nobody can
+# inspect is a claim. They are a few KB each because the raw fixtures are not
+# committed - the results record the fixture's parameters, not its bytes.
+
+# local caches
+.nopeat-cache/
+node_modules/
+__pycache__/
+dist/
+report*.html
+*-report.html
+
+# mdbook site: sources (docs/) and build output stay out of version control.
+book/
+
+# webpack-bundle-analyzer's raw json export: written by every parity run, and it is
+# the reference tool's output, not a record of ours.
+bench/results/parity-wba.json
+
+# The prose under docs/ is not published. `docs/assets/` and `docs/schema/` are,
+# and a bare `docs/` would take both with it: the README embeds six figures from
+# the first and links four contract files in the second, so ignoring the whole
+# tree ships a front page with broken images and dead links.
+docs/*
+!docs/assets/
+!docs/schema/
+
+history-rewrite-report.md
+aiscan_tmp.py

@@ -1,0 +1,404 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  # Fixtures are fetched, never committed (ADR-0005), so tests that need a
+  # network-fetched fixture are allowed to skip rather than fail on a fork.
+  OB_FIXTURES: 1
+
+jobs:
+  test:
+    name: test
+    # Windows only, which is the platform the benchmarks were measured on and the
+    # one the code is developed against. A cross-platform matrix looks thorough and
+    # measures nothing: every gate below is platform-independent by construction -
+    # no cfg(target_os), no build script, no path assumptions outside the report
+    # writer - so the extra runners re-run the same code and only add wall clock and
+    # three more places for an unrelated infrastructure failure to hide a real one.
+    #
+    # Adding a platform back means adding a target-specific path somewhere, and that
+    # is the point at which the runner earns its place.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: build (release)
+        run: cargo build --workspace --release
+
+      - name: unit tests
+        run: cargo test --workspace
+
+      - name: fmt
+        run: cargo fmt --all --check
+
+      # The workspace sets `clippy::pedantic`, and every crate opts in, so this
+      # gates on the whole pedantic set, not just the default correctness lints.
+      # It found the wrapping `u64 as i64` in the attribution delta and an
+      # unchecked `f64 as u64` in size scaling, which is why it is worth the
+      # churn of keeping green.
+      - name: clippy (workspace, pedantic, deny warnings)
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: docs parity (EN source, 3 translations)
+        working-directory: bench
+        run: |
+          npm ci --no-audit --no-fund
+          node harness/check-i18n.mjs
+
+      # A shell round-trip corrupted a UTF-8 file here once and the diff looked
+      # like plausible text, so this is a gate rather than a hope. It is also the
+      # only thing that catches a broken translation link before a user does.
+      - name: no encoding damage in any tracked file
+        working-directory: bench
+        run: node harness/check-encoding.mjs
+
+      - name: the npm shim honours argv and the exit codes
+        working-directory: npm/nopeat
+        # `shell: bash` for the same reason as the chart step below: the second
+        # command sets an environment variable with the POSIX `VAR=value cmd` form,
+        # which pwsh does not have. On a Windows runner the default shell is pwsh,
+        # so without this the line silently ran with an empty path.
+        shell: bash
+        run: |
+          npm test
+          # The shim has to work from a build produced by this job, which is what
+          # NOPEAT_BIN is for.
+          BIN="$GITHUB_WORKSPACE/target/release/nopeat"
+          [ -x "$BIN" ] || BIN="$BIN.exe"
+          NOPEAT_BIN="$BIN" npm test
+
+      - name: the README images are valid geometry
+        working-directory: bench
+        run: node harness/check-treemap-svg.mjs ../docs/assets/treemap-*.svg
+
+      # 1018 generated cases against the treemap layout, plus an equivalence
+      # test against the copy inlined in the report shell. A squarify that
+      # double-places a row still looks plausible in a thumbnail, which is how
+      # the first README image got 39 overlaps unnoticed.
+      - name: treemap layout properties
+        working-directory: bench
+        run: node harness/check-treemap-layout.mjs
+
+      - name: workflow files parse
+        working-directory: bench
+        run: node harness/check-workflows.mjs
+
+      - name: licence copies match the canonical files
+        working-directory: bench
+        run: node harness/check-licenses.mjs
+
+      # Proptest runs on stable, so this needs no nightly toolchain. These are
+      # the properties that found the two scaling/attribution defects.
+      - name: property tests
+        run: cargo test -p nopeat-core --test properties
+
+      # The charts are generated, not drawn, and they are only trustworthy if
+      # regenerating them is reproducible. This also fails if a label formatter
+      # drifts: the SVG stores glyphs as paths, so nothing else would notice a
+      # 46 ms measurement being labelled "0.0 s".
+      - name: the charts regenerate
+        working-directory: bench
+        # `shell: bash` on purpose: this step is a POSIX script (`set -euo
+        # pipefail`, `||`), and the default shell on a Windows runner is pwsh,
+        # where `set -euo pipefail` is not a command.
+        shell: bash
+        run: |
+          set -euo pipefail
+          # No install step: the generator is stdlib-only, so a fresh run depends
+          # on the repository alone and nothing else. That is what makes the diff
+          # below mean something.
+          python harness/make-charts.py
+          git diff --exit-code -- ../docs/assets \
+            || { echo "::error::the committed charts differ from a fresh run; run bench/harness/make-charts.py and commit the result"; exit 1; }
+          # And the bars have to encode the numbers. The figures used to draw every
+          # bar the same length, which no diff against the data could catch.
+          node harness/check-chart-scales.mjs
+
+      # The treemap is generated too, and it is the figure that most needs the
+      # gate: the image that shipped before this was rendered by a Node script
+      # reading a field that does not exist, and every rectangle in the committed
+      # file was labelled "[object Object]: 3 KB" with 0.3 % of the canvas
+      # covered. Nothing compared the image to its generator, so nothing noticed.
+      # 20 MB of stats.json - so this step is hermetic and runs on every platform.
+      - name: the README treemap regenerates
+        working-directory: bench
+        shell: bash
+        run: |
+          set -euo pipefail
+          node harness/gen-stats.mjs 20050000 "$RUNNER_TEMP/treemap-stats.json"
+          python harness/render-treemap.py \
+            --stats "$RUNNER_TEMP/treemap-stats.json" --top 40 \
+            --label "synthetic monorepo fixture" \
+            --out ../docs/assets/treemap-large.svg --width 880 --height 440
+          git diff --exit-code -- ../docs/assets/treemap-large.svg \
+            || { echo "::error::the committed treemap differs from a fresh run; run bench/harness/render-treemap.py and commit the result"; exit 1; }
+
+      # Every headline figure in every README must be the number the record says.
+      - name: the READMEs quote the records
+        working-directory: bench
+        run: node harness/check-readme-numbers.mjs
+
+      # 30 dead links were sitting in the docs headers, pointing at translations
+      # that do not exist yet. This found them in one run.
+      - name: no dead relative links
+        working-directory: bench
+        run: node harness/check-links.mjs
+
+      # The crate READMEs ship to crates.io, and they link into the repository with
+      # absolute URLs, so `check-links.mjs` skips them. These four links all
+      # pointed at documents that were deleted, and nothing caught it.
+      - name: the crate READMEs link to files that exist
+        working-directory: bench
+        run: node harness/check-crate-readmes.mjs
+
+      - name: placeholders still to fill in
+        working-directory: .
+        run: node bench/harness/links.mjs
+
+      - name: fetch the fixture the end-to-end build needs
+        working-directory: bench
+        # The next step needs marked's sources, which are not committed. This
+        # used to be part of a `continue-on-error` step shared with the synthetic
+        # fixtures, so a failed fetch looked like a passing job until the build
+        # below failed on a missing directory.
+        shell: pwsh
+        run: ./fixtures/fetch.ps1 -Required marked
+      - name: smoke run on a fixture
+        working-directory: bench
+        run: node fixtures/build/build-fixtures.mjs
+        continue-on-error: true
+
+      - name: end to end on a real webpack build
+        working-directory: bench
+        shell: bash
+        # Run the binary, do not hand it to node. `node ../target/release/x` asks
+        # node to parse the executable as a module, which fails on the ELF magic
+        # bytes. The .exe probe is here because Git Bash does not always append
+        # the suffix for an absolute Windows path.
+        run: |
+          node fixtures/build/build-webpack.mjs marked
+          BIN="$GITHUB_WORKSPACE/target/release/nopeat"
+          [ -x "$BIN" ] || BIN="$BIN.exe"
+          "$BIN" fixtures/artifacts/webpack/marked \
+            --mode static --report "$RUNNER_TEMP/report.html"
+          test -s "$RUNNER_TEMP/report.html"
+
+  parity:
+    name: parity vs webpack-bundle-analyzer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: cargo build --workspace --release
+      # The fixtures are fetched, never committed, so without this the builds
+      # below run against a directory that is not on disk. Only the three the
+      # parity gate needs are required.
+      - name: fetch the fixtures parity needs
+        working-directory: bench
+        shell: pwsh
+        run: ./fixtures/fetch.ps1 -Required preact,marked,chalk
+      - name: build the real fixtures with webpack
+        working-directory: bench
+        run: |
+          npm ci --no-audit --no-fund
+          for fx in preact marked chalk; do node fixtures/build/build-webpack.mjs $fx; done
+          # Concatenation off, so the reference exposes one node per module and
+          # the module half of the parity harness is actually exercised.
+          node fixtures/build/build-webpack.mjs marked --modules
+      - name: parity (gate - 0.1 % on assets and modules)
+        working-directory: bench
+        run: |
+          for fx in preact marked chalk marked-modules; do
+            node harness/parity.mjs \
+              --stats fixtures/artifacts/webpack/$fx/stats.json \
+              --bundle fixtures/artifacts/webpack/$fx
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: parity-results
+          path: bench/results/*.json
+
+  bench:
+    name: benchmark floors
+    runs-on: ubuntu-latest
+    # Timings on shared runners are noisy, so this workflow **publishes** the
+    # numbers and gates only on the memory ceilings (bench-spec.md §6).
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: cargo build --workspace --release
+      - name: generate the synthetic fixtures
+        working-directory: bench
+        run: |
+          node harness/gen-stats.mjs 363000000 "$RUNNER_TEMP/stats-400mb.json"
+          # The assets have to exist on disk: B3 measures the whole pipeline, and
+          # measuring a stats file with no assets beside it is just B1 again.
+          node harness/gen-stats.mjs 400000000 "$RUNNER_TEMP/stats-400mb.json" --assets 1500
+          node harness/materialize-assets.mjs \
+            --stats "$RUNNER_TEMP/stats-400mb.json" --out "$RUNNER_TEMP/dist"
+          cp "$RUNNER_TEMP/stats-400mb.json" "$RUNNER_TEMP/dist/stats.json"
+          node harness/gen-map.mjs 10000 "$RUNNER_TEMP/map-10k.json" 8000000
+          node harness/gen-bundle.mjs "$RUNNER_TEMP/map-10k.json" 8000000 "$RUNNER_TEMP/map-10k.bundle.js"
+      # `measure.ps1` is the same sampler the published numbers come from, and
+      # pwsh ships on the ubuntu runners. `measure-rss.sh` stays as the
+      # fallback for a machine without PowerShell, and is a different
+      # implementation on purpose: one sampler you cannot cross-check is one
+      # sampler you cannot trust.
+      - name: measure
+        working-directory: bench
+        run: |
+          set -euo pipefail
+          OB="$GITHUB_WORKSPACE/target/release/nopeat"
+          [ -x "$OB" ] || OB="$OB.exe"
+          mkdir -p results
+          echo "--- B1 stats ingest (target: <= 2000 ms, <= 200 MB) ---"
+          pwsh -File harness/measure.ps1 -Binary "$OB" -Target "$RUNNER_TEMP/stats-400mb.json" \
+            -Extra '--bench' -Runs 3 | tee results/b1-ingest.json
+          echo "--- B3 full pipeline (target: <= 5000 ms, <= 200 MB) ---"
+          pwsh -File harness/measure.ps1 -Binary "$OB" -Target "$RUNNER_TEMP/dist" \
+            -Extra "--mode static --report $RUNNER_TEMP/report.html" -Runs 3 | tee results/b3-pipeline.json
+          echo "--- B5 source map (target: <= 1000 ms) ---"
+          pwsh -File harness/measure.ps1 -Binary "$OB" -Target "$RUNNER_TEMP/map-10k.json" \
+            -Extra '--bench-map' -Runs 3 | tee results/b5-sourcemap.json
+      # Timings on a shared runner are not a gate - they vary by tens of percent
+      # between runs, and a gate that flickers is a gate people disable. The
+      # numbers are published; the memory ceilings are checked here.
+      - name: check the memory ceilings
+        working-directory: bench
+        run: |
+          set -euo pipefail
+          fail=0
+          check() { # name file ceiling_mb
+            local got
+            got=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$2','utf8')).peak_private_median_mb)")
+            if awk "BEGIN{exit !($got > $3)}"; then
+              echo "FAIL $1 used ${got} MB, ceiling ${3} MB"
+              fail=1
+            else
+              echo "ok   $1 ${got} MB <= ${3} MB"
+            fi
+          }
+          check "B1 ingest"    results/b1-ingest.json    200
+          check "B3 pipeline"  results/b3-pipeline.json  200
+          check "B5 sourcemap" results/b5-sourcemap.json 200
+          exit $fail
+      - name: publish the measurements
+        working-directory: bench
+        run: |
+          {
+            echo '### Benchmarks (median of 3, shared runner)'
+            echo
+            for f in results/b*.json; do
+              echo "#### \`$(basename $f)\`"
+              echo
+              echo '```json'
+              node -e "const j=JSON.parse(require('fs').readFileSync('$f','utf8'));delete j.rss_source;console.log(JSON.stringify(j,null,2))"
+              echo '```'
+              echo
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bench-results
+          path: bench/results/*
+
+  release:
+    name: release dry run
+    needs: [test, parity]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: build release binaries for every target
+        run: cargo build --workspace --release --target x86_64-unknown-linux-gnu
+      # `|| true` because a packaging error on an unreleased crate should be a
+      # warning here and a hard failure in release.yml, where the tag exists.
+      # The output is uploaded either way, so it is never silently swallowed.
+      - name: the crates package cleanly
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/pkg
+          for c in nopeat-core nopeat-cli; do
+            echo "--- $c ---"
+            cargo package -p "$c" --allow-dirty --no-verify 2>&1 | tee -a /tmp/pkg/package.log || true
+          done
+          cat /tmp/pkg/package.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: package-log
+          path: /tmp/pkg/package.log
+
+  coverage:
+    name: test coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          # cargo-llvm-cov needs the llvm-tools component that ships with the
+          # toolchain; without it the job fails on a missing binary.
+          components: llvm-tools-preview
+      - name: install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+      - name: coverage (all targets, including the property tests)
+        run: |
+          cargo llvm-cov --all-targets --workspace --summary-only \
+            | tee coverage.txt
+      # The percentage is the first field on the TOTAL line that ends in `%`.
+      # Taking the *last* field instead reads the trailing region column, which
+      # llvm-cov writes as `-` when there are no doctests or benchmarks — so the
+      # comparison became `awk: BEGIN{exit !(- < 70)}`, a syntax error, and the
+      # step failed on a run whose coverage was 82.19%.
+      - name: enforce the coverage floor
+        run: |
+          set -euo pipefail
+          pct=$(awk '/^TOTAL/ {
+            for (i = 1; i <= NF; i++) if ($i ~ /%$/) { print $i; exit }
+          }' coverage.txt | tr -d '%')
+          if [ -z "$pct" ]; then
+            echo "::error::no percentage on the TOTAL line; llvm-cov changed its output format"
+            grep '^TOTAL' coverage.txt || true
+            exit 1
+          fi
+          echo "total coverage: ${pct}%"
+          awk -v p="$pct" 'BEGIN { exit !(p + 0 < 70) }' && {
+            echo "::error::coverage ${pct}% is below the 70% floor"
+            exit 1
+          }
+          echo "coverage is at or above the floor"
+      - uses: codecov/codecov-action@v5
+        with:
+          files: coverage.txt
+          # Not required for forks: an upload token does not exist there, and a
+          # red X on every fork PR trains people to ignore the check.
+          fail_ci_if_error: false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.txt
+
+  # The mdBook is gone: `docs/en/`, `docs/decisions/` and the SUMMARY are not
+  # published, so there is no book to build and no site to deploy. The engineering
+  # notes are ARCHITECTURE.md at the root, and `check-links.mjs` covers it.

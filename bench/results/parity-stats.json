@@ -1,0 +1,69 @@
+{
+  "measurement": "parity: nopeat vs webpack-bundle-analyzer",
+  "fixture": {
+    "stats": "fixtures/artifacts/webpack/marked-modules/stats.json",
+    "bundle_dir": "fixtures/artifacts/webpack/marked-modules",
+    "class": "real"
+  },
+  "tolerance_ppm": 1000,
+  "assets": {
+    "module_sum": {
+      "keys": {
+        "reference": 1,
+        "ours": 1
+      },
+      "missing": [],
+      "missing_count": 0,
+      "extra": [],
+      "extra_count": 0,
+      "aggregate_ppm": 0,
+      "worst_key": null,
+      "worst_ppm": 0,
+      "keys_over_tolerance": 0,
+      "pass": true
+    },
+    "note": "an asset node in the wba treemap carries the sum of its modules stat sizes; that is the quantity compared"
+  },
+  "synthetic_concatenated_nodes": [],
+  "emitted_file_sizes": {
+    "note": "no reference tool exposes a per-asset emitted size in its json export; our parsed sizes are measured from disk and are therefore not cross-checked here",
+    "ours": [
+      {
+        "name": "main.js",
+        "parsed": 0
+      }
+    ]
+  },
+  "modules": {
+    "keys": {
+      "reference": 1,
+      "ours": 13
+    },
+    "missing": [],
+    "missing_count": 0,
+    "extra": [
+      "Hooks.ts",
+      "Instance.ts",
+      "Lexer.ts",
+      "Parser.ts",
+      "Renderer.ts",
+      "TextRenderer.ts",
+      "Tokenizer.ts",
+      "defaults.ts",
+      "helpers.ts",
+      "rules.ts"
+    ],
+    "extra_count": 12,
+    "aggregate_ppm": 0,
+    "worst_key": null,
+    "worst_ppm": 0,
+    "keys_over_tolerance": 0,
+    "pass": false
+  },
+  "keys_are_gated": false,
+  "pass": true,
+  "not_compared": [
+    "assets: gzip (no reference tool exposes it in the json export)",
+    "attributed: no reference tool computes it at all"
+  ]
+}

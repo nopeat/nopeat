@@ -1,0 +1,42 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "2.1.0"
+edition = "2024"
+rust-version = "1.90"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/Nopeat/Nopeat"
+authors = ["Nopeat contributors"]
+homepage = "https://github.com/Nopeat/Nopeat"
+# No separate documentation site is published; ARCHITECTURE.md is in the
+# repository and crates.io renders a README for the crate. Pointing this at a URL
+# that does not resolve would be worse than pointing it at the source.
+documentation = "https://github.com/Nopeat/Nopeat/blob/main/ARCHITECTURE.md"
+keywords = ["webpack", "bundler", "bundle-analyzer", "source-map", "tree-shaking"]
+categories = ["development-tools::build-utils", "command-line-utilities"]
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive", "rc"] }
+serde_json = "1"
+rayon = "1"
+flate2 = "1"
+clap = { version = "4", features = ["derive"] }
+anyhow = "1"
+thiserror = "2"
+
+blake3 = "1"
+
+regex = "1"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+must_use_candidate = "allow"

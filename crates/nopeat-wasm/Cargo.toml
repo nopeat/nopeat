@@ -1,0 +1,17 @@
+[package]
+name = "nopeat-wasm"
+description = "WASM bindings for the Nopeat engine (Phase 2; structure only for now)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+readme = "README.md"
+
+[dependencies]
+nopeat-core = { version = "2.1.0", path = "../nopeat-core" }
+serde_json = { workspace = true }
+
+[lints]
+workspace = true
