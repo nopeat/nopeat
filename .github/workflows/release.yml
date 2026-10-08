@@ -91,6 +91,18 @@ jobs:
       # like a compiler bug.
       - name: install the target
         run: rustup target add ${{ matrix.target }}
+
+      # Cross-linking to aarch64 needs a cross C toolchain, which the runner does
+      # not have by default. Without it the build died at the link step with
+      # "linker `aarch64-linux-gnu-gcc` not found", which reads like a Rust
+      # problem rather than a missing package.
+      - name: install the aarch64 cross toolchain
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          aarch64-linux-gnu-gcc --version
+
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.target }}
