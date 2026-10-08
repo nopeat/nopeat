@@ -84,8 +84,13 @@ jobs:
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
+      # `targets:` on the action did not install them. rustup reported no such
+      # target at all, so the cross builds died in `crossbeam-utils` with E0463,
+      # "can't find crate for core" - the std for the target is simply absent. A
+      # failed install would have said so; a silent one leaves the build looking
+      # like a compiler bug.
+      - name: install the target
+        run: rustup target add ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.target }}
@@ -106,7 +111,11 @@ jobs:
           NAME="nopeat-${VERSION}-${{ matrix.target }}"
           if [ "${{ matrix.archive }}" = "zip" ]; then
             cp nopeat.exe "${NAME}.exe"
-            zip -q "${NAME}.zip" "${NAME}.exe"
+            cp ../../../LICENSE-MIT ../../../LICENSE-APACHE "${NAME}.exe.licenses" 2>/dev/null || true
+            # Git Bash on a Windows runner has no `zip` binary - it is not part of
+            # the msys2 distribution - so the step died on "zip: command not
+            # found". PowerShell's Compress-Archive is always present.
+            pwsh -NoProfile -Command "Compress-Archive -Path '${NAME}.exe' -DestinationPath '${NAME}.zip' -Force"
             echo "ASSET=${NAME}.zip" >> "$GITHUB_ENV"
           else
             mkdir -p "${NAME}"
