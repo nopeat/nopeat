@@ -5,7 +5,13 @@ import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..', '..');
-const binary = process.env.OB_BINARY ?? join(repoRoot, 'target', 'release', 'nopeat.exe');
+// The `.exe` suffix is Windows-only, and hard-coding it meant this harness could
+// not find the binary on a Linux or macOS runner - which is where the parity job
+// runs. `OB_BINARY` still wins, for pointing at a build outside the workspace.
+const exeSuffix = process.platform === 'win32' ? '.exe' : '';
+const binary =
+  process.env.OB_BINARY ??
+  join(repoRoot, 'target', 'release', `nopeat${exeSuffix}`);
 const resultsDir = join(repoRoot, 'bench', 'results');
 const TOLERANCE_PPM = 1_000;
 

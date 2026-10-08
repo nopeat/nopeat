@@ -366,15 +366,28 @@ jobs:
         run: |
           cargo llvm-cov --all-targets --workspace --summary-only \
             | tee coverage.txt
+      # The percentage is the first field on the TOTAL line that ends in `%`.
+      # Taking the *last* field instead reads the trailing region column, which
+      # llvm-cov writes as `-` when there are no doctests or benchmarks — so the
+      # comparison became `awk: BEGIN{exit !(- < 70)}`, a syntax error, and the
+      # step failed on a run whose coverage was 82.19%.
       - name: enforce the coverage floor
         run: |
           set -euo pipefail
-          pct=$(awk '/^TOTAL/ {print $NF}' coverage.txt | tr -d '%')
+          pct=$(awk '/^TOTAL/ {
+            for (i = 1; i <= NF; i++) if ($i ~ /%$/) { print $i; exit }
+          }' coverage.txt | tr -d '%')
+          if [ -z "$pct" ]; then
+            echo "::error::no percentage on the TOTAL line; llvm-cov changed its output format"
+            grep '^TOTAL' coverage.txt || true
+            exit 1
+          fi
           echo "total coverage: ${pct}%"
-          awk "BEGIN{exit !($pct < 70)}" && {
+          awk -v p="$pct" 'BEGIN { exit !(p + 0 < 70) }' && {
             echo "::error::coverage ${pct}% is below the 70% floor"
             exit 1
           }
+          echo "coverage is at or above the floor"
       - uses: codecov/codecov-action@v5
         with:
           files: coverage.txt
