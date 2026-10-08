@@ -126,10 +126,6 @@ pub fn gzip_size(bytes: &[u8]) -> u64 {
     enc.finish().map_or(0, |v| v.len() as u64)
 }
 
-pub fn content_key(bytes: &[u8]) -> String {
-    blake3::hash(bytes).to_hex().to_string()
-}
-
 #[cfg(test)]
 mod tests {
     use super::{attribute_from_disk, gzip_size};
