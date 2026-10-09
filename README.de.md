@@ -79,7 +79,7 @@ reported as undetectable (`NPT0051`) instead of as a reassuring zero.
 |---|---|---|---|
 | **webpack** 4 / 5 | `stats.json` | nein | ja |
 | **rspack** | `stats.json` (gleiches Schema) | nein | ja |
-| **esbuild** | `metafile.json` oder nur den Ausgabeordner | mit `--metafile` nein | mit `--metafile` ja |
+| **esbuild** | `metafile.json` oder nur den Ausgabeordner | mit einem Metafile nein | mit einem Metafile ja |
 | **Vite** | Ausgabeordner und seine Source Maps | ja | erfordert `--stats`-Ausgabe |
 | **Rollup** | Ausgabeordner und seine Source Maps | ja | erfordert `stats.json` |
 | **Parcel** | Ausgabeordner und seine Source Maps | ja | erfordert `stats.json` |
@@ -179,7 +179,7 @@ eine Detailansicht je Modul, Hell und Dunkel und keine Netzwerkanfragen.</sub>
 
 ## Installation
 
-**Veröffentlicht.** Über npm installieren (lädt das Release-Binary für die Plattform): `npm i -g @nathangzchow/nopeat`, oder `cargo install nopeat-cli`. Auch aus dem Quellcode baubar:
+**Veröffentlicht.** Über npm installieren (lädt das Release-Binary für die Plattform): `npm i -g @nathangzchow/nopeat`. Alternativ das Binary holen oder aus dem Quellcode bauen. `cargo install nopeat-cli` funktioniert noch nicht: `nopeat-core` liegt auf crates.io, das CLI-Crate nicht.
 
 ```bash
 # Linux and macOS
@@ -296,6 +296,7 @@ Jede Entwurfsentscheidung folgt einer Messung, keiner Vorliebe.
 
 ## Dokumentation
 
+- [Dokumentationsseite](https://nopeat.github.io/Nopeat) — Installation, Anleitungen, CLI-Referenz, Diagnosecodes, Glossar und diese Verträge, als Buch
 - [Produktanforderungen](ARCHITECTURE.md) · [Evidenz-Log](ARCHITECTURE.md) · [Architektur](ARCHITECTURE.md)
 - [Benchmarks und Ziele](docs/schema/bench-spec.md) · [Parität und Tests](docs/schema/bench-spec.md) · [Releases und CI](CONTRIBUTING.md)
 - [Verträge](docs/schema/unified-graph.md) — Payload-Schema, CLI-Oberfläche, Benchmark-Protokoll, i18n-Regeln, Ownership

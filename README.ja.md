@@ -80,7 +80,7 @@ reported as undetectable (`NPT0051`) instead of as a reassuring zero.
 |---|---|---|---|
 | **webpack** 4 / 5 | `stats.json` | 不要 | あり |
 | **rspack** | `stats.json`（同じスキーマ） | 不要 | あり |
-| **esbuild** | `metafile.json`、または出力フォルダのみ | `--metafile` なら不要 | `--metafile` があればあり |
+| **esbuild** | `metafile.json`、または出力フォルダのみ | metafile があれば不要 | metafile があればあり |
 | **Vite** | 出力フォルダとソースマップ | 必要 | `--stats` 出力を有効にする必要あり |
 | **Rollup** | 出力フォルダとソースマップ | 必要 | `stats.json` が必要 |
 | **Parcel** | 出力フォルダとソースマップ | 必要 | `stats.json` が必要 |
@@ -172,7 +172,7 @@ HTML レポートにはさらに検索、3 つのグルーピング軸、モジ�
 
 ## インストール
 
-**公開済み。** npm からインストール（対応プラットフォームのリリースバイナリをダウンロードします）：`npm i -g @nathangzchow/nopeat`、または `cargo install nopeat-cli`。ソースからもビルドできます：
+**公開済み。** npm からインストール（対応プラットフォームのリリースバイナリをダウンロードします）：`npm i -g @nathangzchow/nopeat`。バイナリを取得するか、ソースからビルドすることもできます。`cargo install nopeat-cli` はまだ使えません：`nopeat-core` は crates.io にありますが、CLI クレートがありません。
 
 ```bash
 # Linux and macOS
@@ -288,6 +288,7 @@ nopeat ./dist/map.js.map --bench-map            # 帰属のみ計測
 
 ## ドキュメント
 
+- [ドキュメントサイト](https://nopeat.github.io/Nopeat) — インストール、ガイド、CLI リファレンス、診断コード、用語集、そしてこれらの契約を書籍形式で
 - [プロダクト要件](ARCHITECTURE.md) · [証跡ログ](ARCHITECTURE.md) · [アーキテクチャ](ARCHITECTURE.md)
 - [ベンチマークと目標](docs/schema/bench-spec.md) · [整合性とテスト](docs/schema/bench-spec.md) · [リリースと CI](CONTRIBUTING.md)
 - [契約](docs/schema/unified-graph.md) — payload schema、CLI 仕様、ベンチプロトコル、i18n 規則、オーナーシップ
