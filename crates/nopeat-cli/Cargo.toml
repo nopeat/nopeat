@@ -14,7 +14,7 @@ name = "nopeat"
 path = "src/main.rs"
 
 [dependencies]
-nopeat-core = { version = "2.1.0", path = "../nopeat-core" }
+nopeat-core = { version = "=2.1.1", path = "../nopeat-core" }
 clap = { workspace = true }
 serde_json = { workspace = true }
 serde = { workspace = true }

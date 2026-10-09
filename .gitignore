@@ -38,3 +38,8 @@ docs/*
 
 history-rewrite-report.md
 aiscan_tmp.py
+
+# Not published: the curated issue list, which is a working document rather than
+# a document anyone reads. It is gitignored rather than deleted because it is
+# kept up to date and pushed to GitHub by hand once it is ready.
+docs/good-first-issues.md
