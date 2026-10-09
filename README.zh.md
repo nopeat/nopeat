@@ -173,19 +173,17 @@ HTML 报告另外还有搜索、三种分组维度、按模块下钻、明暗主
 
 ## 安装
 
-**尚未发布。** npm 上没有 `nopeat`，crates.io 上也没有可安装的 crate，所以
-`npx nopeat` 和 `cargo install nopeat-cli` 今天都不可用，本 README 不提供它们。
-请从源码构建：
+**已发布。** 从 npm 安装（会下载对应平台的发布二进制）：`npm i -g @nathangzchow/nopeat`，或 `cargo install nopeat-cli`。也可以从源码构建：
 
 ```bash
 # Linux and macOS
 curl -L -o nopeat.tar.gz \
-  https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.0-x86_64-unknown-linux-gnu.tar.gz
+  https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.1-x86_64-unknown-linux-gnu.tar.gz
 tar -xzf nopeat.tar.gz
 
 # Windows
 curl -L -o nopeat.zip \
-  https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.0-x86_64-pc-windows-msvc.zip
+  https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.1-x86_64-pc-windows-msvc.zip
 
 # or from source
 git clone https://github.com/nopeat/nopeat.git

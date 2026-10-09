@@ -172,19 +172,17 @@ HTML レポートにはさらに検索、3 つのグルーピング軸、モジ�
 
 ## インストール
 
-**まだ公開していません。** npm に `nopeat` はなく、インストールできる crate もないため、
-`npx nopeat` と `cargo install nopeat-cli` は現在どちらも動きません。本 README は
-それを提供しません。ソースからビルドしてください：
+**公開済み。** npm からインストール（対応プラットフォームのリリースバイナリをダウンロードします）：`npm i -g @nathangzchow/nopeat`、または `cargo install nopeat-cli`。ソースからもビルドできます：
 
 ```bash
 # Linux and macOS
 curl -L -o nopeat.tar.gz \
-  https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.0-x86_64-unknown-linux-gnu.tar.gz
+  https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.1-x86_64-unknown-linux-gnu.tar.gz
 tar -xzf nopeat.tar.gz
 
 # Windows
 curl -L -o nopeat.zip \
-  https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.0-x86_64-pc-windows-msvc.zip
+  https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.1-x86_64-pc-windows-msvc.zip
 
 # or from source
 git clone https://github.com/nopeat/nopeat.git
