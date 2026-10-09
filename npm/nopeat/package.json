@@ -1,5 +1,5 @@
 {
-  "name": "nopeat",
+  "name": "@nathangzchow/nopeat",
   "version": "2.1.1",
   "description": "Analyse bundler output (stats.json, source maps, esbuild metafiles, dist folders) in one pass, with real byte attribution and a memory bill you can see.",
   "keywords": [

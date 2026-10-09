@@ -30,12 +30,12 @@
       "note": "The same repository as owner/name, for the shields.io release badge, which cannot take a full URL. No scheme, no .git."
     },
     "NPM_PACKAGE": {
-      "value": "nopeat",
+      "value": "@nathangzchow/nopeat",
       "example": "nopeat",
       "note": "The npm package name. Must match npm/nopeat/package.json; links.mjs checks that it does."
     },
     "NPM_URL": {
-      "value": "https://www.npmjs.com/package/nopeat",
+      "value": "https://www.npmjs.com/package/@nathangzchow/nopeat",
       "example": "https://www.npmjs.com/package/nopeat",
       "note": "The npm package page, for the install instructions and the npm badge target. Until this is set, links.mjs refuses an npm badge or an offered `npx nopeat` on any README: the package does not exist yet, so both are 404s. Setting this is where they come back."
     },

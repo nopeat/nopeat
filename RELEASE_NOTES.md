@@ -6,7 +6,7 @@ every byte comes back attributed to the source that caused it.
 
 ## Install
 
-- npm: `npm i -g nopeat` (downloads the release binary for your platform)
+- npm: `npm i -g @nathangzchow/nopeat` (downloads the release binary for your platform)
 - Cargo: `cargo install nopeat-cli`
 - or build from source: `cargo build --release`
 
