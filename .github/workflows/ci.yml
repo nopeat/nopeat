@@ -155,10 +155,12 @@ jobs:
         working-directory: bench
         run: node harness/check-links.mjs
 
-      # The crate READMEs ship to crates.io, and they link into the repository with
-      # absolute URLs, so `check-links.mjs` skips them. These four links all
-      # pointed at documents that were deleted, and nothing caught it.
-      - name: the crate READMEs link to files that exist
+      # The crate READMEs ship to crates.io, and ARCHITECTURE.md and
+      # CONTRIBUTING.md ship as chapters of the documentation site. All five
+      # link into the repository with absolute URLs, so `check-links.mjs` skips
+      # them; four of those links once pointed at documents that had been
+      # deleted, and nothing caught it.
+      - name: the repository links point to files that exist
         working-directory: bench
         run: node harness/check-crate-readmes.mjs
 
@@ -399,6 +401,25 @@ jobs:
           name: coverage
           path: coverage.txt
 
-  # The mdBook is gone: `docs/en/`, `docs/decisions/` and the SUMMARY are not
-  # published, so there is no book to build and no site to deploy. The engineering
-  # notes are ARCHITECTURE.md at the root, and `check-links.mjs` covers it.
+  docs:
+    name: documentation book
+    # The book is built on every PR so a SUMMARY entry with no file behind it,
+    # a broken `{{#include}}` or a link that only resolves in the browser fails
+    # here rather than on the published site. Deploying it is `pages.yml`, which
+    # runs on main only, so a fork PR gets the build and never the publish.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: install mdBook
+        run: |
+          set -euo pipefail
+          # Pinned, not latest: the generated HTML is part of what a reviewer
+          # sees, so a new mdBook must arrive as its own commit.
+          v=0.5.4
+          curl -fsSL --retry 3 -o mdbook.tar.gz \
+            "https://github.com/rust-lang/mdBook/releases/download/v$v/mdbook-v$v-x86_64-unknown-linux-gnu.tar.gz"
+          tar -xzf mdbook.tar.gz
+          sudo install -m 755 mdbook /usr/local/bin/mdbook
+          mdbook --version
+      - name: the book builds
+        run: mdbook build

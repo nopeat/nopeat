@@ -7,6 +7,7 @@ const repoRoot = resolve(fileURLToPath(import.meta.url), '..', '..', '..');
 
 const FILES = [
   '.github/workflows/ci.yml',
+  '.github/workflows/pages.yml',
   '.github/workflows/release.yml',
   '.github/labeler.yml',
   '.github/stale.yml',
@@ -16,6 +17,7 @@ const FILES = [
 
 const EXPECTED = [
   { file: '.github/workflows/ci.yml', key: 'on' },
+  { file: '.github/workflows/pages.yml', key: 'on' },
   { file: '.github/workflows/release.yml', key: 'on' },
 ];
 
