@@ -1,0 +1,25 @@
+# `mdbook build` reads the sources from `docs/` and writes HTML into `book/`.
+# `book/` is gitignored (it was the old build-dir too, before it moved out of
+# `docs/`), and `check-encoding.mjs` skips it so a build never looks like a
+# damaged tracked file.
+
+[book]
+title = "Nopeat"
+description = "Bundle analysis in Rust: stats.json, esbuild metafiles and dist folders, attributed back to the source file that caused each byte."
+authors = ["Nopeat contributors"]
+language = "en"
+src = "docs"
+
+[build]
+build-dir = "book"
+# A SUMMARY entry pointing at a file nobody wrote must fail the build rather
+# than be conjured as an empty stub and committed one day.
+create-missing = false
+
+[output.html]
+git-repository-url = "https://github.com/Nopeat/Nopeat"
+# mdBook's `{path}` already carries `docs/`, the src directory.
+edit-url-template = "https://github.com/Nopeat/Nopeat/edit/main/{path}"
+# GitHub Pages serves a project site under /<repository>/, and that path is
+# case sensitive, so it is the repository name as it is spelled, not lowercased.
+site-url = "/Nopeat/"

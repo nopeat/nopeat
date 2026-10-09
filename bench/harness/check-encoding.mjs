@@ -6,6 +6,9 @@ const repoRoot = resolve(fileURLToPath(import.meta.url), '..', '..', '..');
 
 const SKIP_DIRS = new Set([
   '.git', 'target', 'node_modules', 'artifacts', 'vendor', 'coverage', 'repos',
+  // mdbook build output: generated HTML, not a tracked file. `SKIP_PREFIXES`
+  // still has 'book/book' for the tree that was there before build-dir moved.
+  'book',
 ]);
 
 const SKIP_PREFIXES = ['book/book'];
