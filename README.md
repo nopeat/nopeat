@@ -3,7 +3,10 @@
 <img src="assets/logo.svg" alt="Nopeat logo" width="76" />
 
 # Nopeat
+just a simple bundle analyzer that reduce memory usage and save your time,
 
+
+30x faster, 4x less memory 
 **Bundle analysis in Rust. On a 1 GB `stats.json` with 445,602 modules it takes
 6.1 s and 376 MB, where webpack-bundle-analyzer takes 176 s and 1.4 GB.**
 
