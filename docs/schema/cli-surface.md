@@ -39,10 +39,10 @@ regression.
 | `-O, --no-open` | flag | off (static never opens a browser) | `webpack-bundle-analyzer -O` |
 | `--budget` | path to `nopeat.config.json` | – | new |
 | `--json` | flag (shortcut for `--mode json` to stdout) | off | new |
-| `--dims` | `source` \| `package` \| `chunk` (repeatable) | all three | new (Phase 2 adds `deps`) |
+| `--dims` | `source` \| `package` \| `chunk` \| `ext` (repeatable) | all three of `source`, `package`, `chunk` | new |
 | `--include-sources` | flag | off | new: embed `sourcesContent` in the HTML for drill-down |
-| `--no-fusion` | flag | off | new: escape hatch, report the raw graph |
-| `--cache-dir` | path | `.nopeat-cache` | new |
+| `--bench` | flag | off | new: print one line of JSON timings and counts (`ingest_ms`, `total_ms`, modules, assets, packages, total size, dimension) instead of a report, then exit `0` |
+| `--bench-map` | flag | off | new: benchmark decoding one `*.map` file and print one line of JSON (`parse_ms`, `attribute_ms`, sources, mappings, attributed files and bytes), then exit |
 | `-l, --log-level` | `error` \| `warn` \| `info` \| `debug` | `warn` | `webpack-bundle-analyzer -l` |
 
 Deliberate non-goals for Phase 1: no `--serve` (a static single file is the
@@ -96,3 +96,18 @@ what it looked for.
 `--watch` (Phase 2), `--baseline <file>` (Phase 3, trend diffing) and
 `--format sarif` (Phase 3) are explicitly reserved names so plugins and CI
 configs written against Nopeat 1.x keep parsing.
+
+## 7. Diagnostic codes
+
+`NPT0040` (budget breach, §3) and `NPT0042` (size invariant, §1) are described
+above. The remaining codes are the same ones documented in
+[`ARCHITECTURE.md`](../../ARCHITECTURE.md); each is a stable string you can grep for.
+
+| code | severity | condition |
+|---|---|---|
+| `NPT0001` | warning | the stats file has no `modules` array, which is a dev-server export rather than a build |
+| `NPT0002` | error | no asset was found next to the metadata, so there is nothing to attribute |
+| `NPT0050` | warning | no source maps sit next to the output, so only file sizes are known. Build with `--sourcemap` for per-source attribution |
+| `NPT0051` | info | no bundler metadata in the folder, so ghost code cannot be detected. It needs a declared graph to compare against |
+| `NPT0052` | info | modules with no name were skipped. webpack emits one for its runtime, and a module with no path cannot be attributed to a file |
+| `NPT0060` | info | modules below `--min-size` were filtered out. The count and the bytes are exact; the names listed are a sample |
