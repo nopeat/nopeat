@@ -455,7 +455,7 @@ dependencies = [
 
 [[package]]
 name = "nopeat-cli"
-version = "2.1.0"
+version = "2.1.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -468,7 +468,7 @@ dependencies = [
 
 [[package]]
 name = "nopeat-core"
-version = "2.1.0"
+version = "2.1.1"
 dependencies = [
  "criterion",
  "flate2",
@@ -481,7 +481,7 @@ dependencies = [
 
 [[package]]
 name = "nopeat-wasm"
-version = "2.1.0"
+version = "2.1.1"
 dependencies = [
  "nopeat-core",
  "serde_json",

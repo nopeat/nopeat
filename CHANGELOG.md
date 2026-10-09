@@ -11,6 +11,28 @@ says so and gives the number.
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-10-09
+
+### Fixed
+
+- The npm installer asked for asset names the release never published: it derived
+  them from `process.platform` and `process.arch`, so it requested
+  `nopeat-2.1.0-linux-x64.tar.gz` against a published
+  `nopeat-2.1.0-x86_64-unknown-linux-gnu.tar.gz`, and a bare `.exe` against a zip.
+- The cross builds did not install their targets, so three of the five release
+  targets failed.
+- `blake3` was a dependency of a function nothing called, and it needs a C
+  cross-compiler.
+- The coverage floor read the wrong column of the llvm-cov summary and failed a
+  run at 82.19%.
+
+### Changed
+
+- The README documented `nopeat ./dist --mode csv`, which exits 2. CSV is a
+  separate `--csv <FILE>` flag.
+
+## [2.1.0] - 2026-09-30
+
 ### Fixed
 
 - The README offered `npx nopeat` and `cargo install nopeat-cli`, and
@@ -142,5 +164,6 @@ Bugs found by the benchmarks, each with a regression test:
 - The report renders text to Canvas and never to `innerHTML`; the shell escapes
   `</script` in its data island.
 
-[Unreleased]: https://github.com/Nopeat/Nopeat/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/Nopeat/Nopeat/compare/v2.1.1...HEAD
+[2.1.1]: https://github.com/Nopeat/Nopeat/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/Nopeat/Nopeat/releases/tag/v2.1.0

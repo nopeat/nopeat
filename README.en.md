@@ -167,12 +167,12 @@ build it:
 ```bash
 # Linux and macOS
 curl -L -o nopeat.tar.gz \
-  https://github.com/nopeat/nopeat/releases/download/v2.1.0/nopeat-2.1.0-x86_64-unknown-linux-gnu.tar.gz
+  https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.0-x86_64-unknown-linux-gnu.tar.gz
 tar -xzf nopeat.tar.gz
 
 # Windows
 curl -L -o nopeat.zip \
-  https://github.com/nopeat/nopeat/releases/download/v2.1.0/nopeat-2.1.0-x86_64-pc-windows-msvc.zip
+  https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.0-x86_64-pc-windows-msvc.zip
 
 # or from source
 git clone https://github.com/nopeat/nopeat.git
@@ -181,7 +181,7 @@ cargo build --release
 ./target/release/nopeat ./dist
 ```
 
-Five targets are published for `v2.1.0` — x86-64 and aarch64 for Linux, macOS
+Five targets are published for `v2.1.1` — x86-64 and aarch64 for Linux, macOS
 and Windows — each with a sha256 in `checksums.txt`. Verify before running
 anything:
 
@@ -246,7 +246,7 @@ Pre-1.0. Anything unmeasured says so.
 | report first paint / 30 fps | **unverified** — no browser in CI; measured instead as 1.56 MB and 1.27 s at 154,379 modules |
 | WASM build, WebGL renderer | not started |
 | crates.io, npm | not published |
-| GitHub release | v2.1.0 published, 5 targets, with sha256 checksums |
+| GitHub release | v2.1.1 published, 5 targets, with sha256 checksums |
 | tests | 82 Rust, 4 npm, 1,018 generated layout cases |
 | coverage | 82.19% of lines, against a 70% floor |
 | Linux and macOS runners | not exercised; CI runs on Windows only |

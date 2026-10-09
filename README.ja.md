@@ -179,12 +179,12 @@ HTML レポートにはさらに検索、3 つのグルーピング軸、モジ�
 ```bash
 # Linux and macOS
 curl -L -o nopeat.tar.gz \
-  https://github.com/nopeat/nopeat/releases/download/v2.1.0/nopeat-2.1.0-x86_64-unknown-linux-gnu.tar.gz
+  https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.0-x86_64-unknown-linux-gnu.tar.gz
 tar -xzf nopeat.tar.gz
 
 # Windows
 curl -L -o nopeat.zip \
-  https://github.com/nopeat/nopeat/releases/download/v2.1.0/nopeat-2.1.0-x86_64-pc-windows-msvc.zip
+  https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.0-x86_64-pc-windows-msvc.zip
 
 # or from source
 git clone https://github.com/nopeat/nopeat.git
