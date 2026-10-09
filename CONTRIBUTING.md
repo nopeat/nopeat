@@ -45,8 +45,11 @@ cd bench && npm ci && node fixtures/build/build-webpack.mjs marked && node harne
 ## Filling in the URLs
 
 The URLs this project does not control yet - the repository, the npm page, the
-crates.io pages, the docs site - are declared once, in [`repo-links.json`](repo-links.json),
-and appear in the files as double-brace tokens. Nothing anywhere hardcodes them.
+crates.io pages, the docs site - are declared once, in
+[`repo-links.json`](https://github.com/Nopeat/Nopeat/blob/main/repo-links.json),
+and appear in the files as double-brace tokens. `--apply` writes the value in,
+so what is committed is the URL; the table keeps the value, an example of it
+and the rule that has to match it in one place.
 
 ```bash
 node bench/harness/links.mjs            # what is still empty, and where each token appears
@@ -55,7 +58,8 @@ node bench/harness/links.mjs --apply    # substitute into every tracked file
 ```
 
 To apply without ending up with `https://github.com/github.com`, fill in the
-values before applying rather than editing the 16 files by hand.
+values before applying rather than editing every file that carries a token by
+hand.
 
 Two things are checked on top of the substitution:
 
@@ -74,7 +78,7 @@ publishes a README that cannot be fixed afterwards without a new version.
 ## Where things live
 
 Contracts are frozen first, and they live in
-[`docs/schema/`](docs/schema/unified-graph.md). If your change touches
+[`docs/schema/`](https://github.com/Nopeat/Nopeat/blob/main/docs/schema/unified-graph.md). If your change touches
 the unified graph, the report schema, the CLI surface or the benchmark
 protocol, it needs an ADR, not just a good commit message.
 
@@ -123,10 +127,10 @@ proven otherwise — that is the only rule that keeps a benchmark meaningful.
 
 ## Code of conduct
 
-[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). Security issues:
-[SECURITY.md](SECURITY.md) — not the public issue tracker.
+[CODE_OF_CONDUCT.md](https://github.com/Nopeat/Nopeat/blob/main/CODE_OF_CONDUCT.md). Security issues:
+[SECURITY.md](https://github.com/Nopeat/Nopeat/blob/main/SECURITY.md) — not the public issue tracker.
 
 ## Licence
 
-MIT or Apache-2.0, at your option. See [LICENSE-MIT](LICENSE-MIT) and
-[LICENSE-APACHE](LICENSE-APACHE).
+MIT or Apache-2.0, at your option. See [LICENSE-MIT](https://github.com/Nopeat/Nopeat/blob/main/LICENSE-MIT) and
+[LICENSE-APACHE](https://github.com/Nopeat/Nopeat/blob/main/LICENSE-APACHE).
