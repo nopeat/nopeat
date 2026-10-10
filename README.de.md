@@ -11,6 +11,8 @@ Speichers.
 
 [![CI](https://github.com/Nopeat/Nopeat/actions/workflows/ci.yml/badge.svg)](https://github.com/Nopeat/Nopeat/actions/workflows/ci.yml)
 [![MSRV](https://img.shields.io/badge/rust-1.90%2B-blue.svg)](https://doc.rust-lang.org/stable/notes.html)
+[![npm](https://img.shields.io/npm/v/@nathangzchow/nopeat)](https://www.npmjs.com/package/@nathangzchow/nopeat)
+[![crates.io](https://img.shields.io/crates/v/nopeat-core)](https://crates.io/crates/nopeat-core)
 [![license](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
 [English](README.en.md) · [中文](README.zh.md) · [日本語](README.ja.md) · **Deutsch**
@@ -178,7 +180,9 @@ eine Detailansicht je Modul, Hell und Dunkel und keine Netzwerkanfragen.</sub>
 
 ## Installation
 
-**Veröffentlicht.** Über npm installieren (lädt das Release-Binary für die Plattform): `npm i -g @nathangzchow/nopeat`. Alternativ das Binary holen oder aus dem Quellcode bauen. `cargo install nopeat-cli` funktioniert noch nicht: `nopeat-core` liegt auf crates.io, das CLI-Crate nicht.
+**Veröffentlicht.** Über npm installieren (lädt das Release-Binary für die Plattform): [`npm i -g @nathangzchow/nopeat`](https://www.npmjs.com/package/@nathangzchow/nopeat). Alternativ das Binary holen oder aus dem Quellcode bauen. `cargo install nopeat-cli` funktioniert noch nicht: [`nopeat-core`](https://crates.io/crates/nopeat-core) liegt auf crates.io, das CLI-Crate nicht.
+
+**Plattformen:** vorgebaute Binaries für Windows x64, macOS x64 und Apple Silicon sowie Linux x64 / arm64; alles andere baut per `cargo` aus dem Quellcode.
 
 ```bash
 # Linux and macOS

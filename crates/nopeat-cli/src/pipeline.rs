@@ -327,7 +327,7 @@ pub fn build_graph(
 
 pub fn dims_selected(cli: &Cli) -> Vec<Dimension> {
     if cli.dims.is_empty() {
-        vec![Dimension::Package, Dimension::SourceFile, Dimension::Chunk]
+        vec![Dimension::Package, Dimension::SourceFile, Dimension::Chunk, Dimension::Extension]
     } else {
         cli.dims
             .iter()

@@ -15,6 +15,8 @@ One binary, no Node runtime, no browser. Give it a `stats.json`, an esbuild
 the source file that caused it.
 
 [![CI](https://github.com/Nopeat/Nopeat/actions/workflows/ci.yml/badge.svg)](https://github.com/Nopeat/Nopeat/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/@nathangzchow/nopeat)](https://www.npmjs.com/package/@nathangzchow/nopeat)
+[![crates.io](https://img.shields.io/crates/v/nopeat-core)](https://crates.io/crates/nopeat-core)
 [![rust](https://img.shields.io/badge/rust-1.90%2B-000?logo=rust&logoColor=white)](https://doc.rust-lang.org/stable/notes.html)
 [![license](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
@@ -163,7 +165,11 @@ network requests.</sub>
 ## Install
 
 **Published.** Install from npm (downloads the release binary for your platform):
-`npm i -g @nathangzchow/nopeat`. Or grab a binary, or build it:
+[`npm i -g @nathangzchow/nopeat`](https://www.npmjs.com/package/@nathangzchow/nopeat).
+Or grab a binary, or build it:
+
+**Platforms:** prebuilt binaries ship for Windows x64, macOS x64 and Apple
+silicon, and Linux x64 / arm64; anything else builds from source with `cargo`.
 
 ```bash
 # Linux and macOS
@@ -193,10 +199,10 @@ sha256sum -c checksums.txt
 The npm wrapper downloads its binary from this release rather than shipping
 one, and checks `checksums.txt` before writing or executing anything.
 
-`cargo install nopeat-cli` does not work yet: `nopeat-core` is on crates.io,
-the CLI crate is not, so that command fails today. Build from source, or use
-one of the two routes above; the crate comes back in the commit that publishes
-it.
+`cargo install nopeat-cli` does not work yet: [`nopeat-core`](https://crates.io/crates/nopeat-core)
+is on crates.io, the CLI crate is not, so that command fails today. Build from
+source, or use one of the two routes above; the crate comes back in the commit
+that publishes it.
 
 ## Use
 

@@ -11,6 +11,8 @@ Nopeat 是芬兰语 *nopea*（"快"）的复数形式，发音近似 "NO-peh-aht
 
 [![CI](https://github.com/Nopeat/Nopeat/actions/workflows/ci.yml/badge.svg)](https://github.com/Nopeat/Nopeat/actions/workflows/ci.yml)
 [![MSRV](https://img.shields.io/badge/rust-1.90%2B-blue.svg)](https://doc.rust-lang.org/stable/notes.html)
+[![npm](https://img.shields.io/npm/v/@nathangzchow/nopeat)](https://www.npmjs.com/package/@nathangzchow/nopeat)
+[![crates.io](https://img.shields.io/crates/v/nopeat-core)](https://crates.io/crates/nopeat-core)
 [![license](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
 [English](README.en.md) · **中文** · [日本語](README.ja.md) · [Deutsch](README.de.md)
@@ -172,7 +174,9 @@ HTML 报告另外还有搜索、三种分组维度、按模块下钻、明暗主
 
 ## 安装
 
-**已发布。** 从 npm 安装（会下载对应平台的发布二进制）：`npm i -g @nathangzchow/nopeat`；也可以抓取二进制发布，或从源码构建。`cargo install nopeat-cli` 目前还用不了：`nopeat-core` 已经上架 crates.io，CLI crate 还没有。
+**已发布。** 从 npm 安装（会下载对应平台的发布二进制）：[`npm i -g @nathangzchow/nopeat`](https://www.npmjs.com/package/@nathangzchow/nopeat)；也可以抓取二进制发布，或从源码构建。`cargo install nopeat-cli` 目前还用不了：[`nopeat-core`](https://crates.io/crates/nopeat-core) 已经上架 crates.io，CLI crate 还没有。
+
+**平台：** 预编译二进制覆盖 Windows x64、macOS x64 与 Apple silicon、Linux x64 / arm64；其余平台用 `cargo` 从源码构建。
 
 ```bash
 # Linux and macOS

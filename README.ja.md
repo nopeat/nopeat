@@ -12,6 +12,8 @@
 
 [![CI](https://github.com/Nopeat/Nopeat/actions/workflows/ci.yml/badge.svg)](https://github.com/Nopeat/Nopeat/actions/workflows/ci.yml)
 [![MSRV](https://img.shields.io/badge/rust-1.90%2B-blue.svg)](https://doc.rust-lang.org/stable/notes.html)
+[![npm](https://img.shields.io/npm/v/@nathangzchow/nopeat)](https://www.npmjs.com/package/@nathangzchow/nopeat)
+[![crates.io](https://img.shields.io/crates/v/nopeat-core)](https://crates.io/crates/nopeat-core)
 [![license](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
 [English](README.en.md) · [中文](README.zh.md) · **日本語** · [Deutsch](README.de.md)
@@ -171,7 +173,9 @@ HTML レポートにはさらに検索、3 つのグルーピング軸、モジ�
 
 ## インストール
 
-**公開済み。** npm からインストール（対応プラットフォームのリリースバイナリをダウンロードします）：`npm i -g @nathangzchow/nopeat`。バイナリを取得するか、ソースからビルドすることもできます。`cargo install nopeat-cli` はまだ使えません：`nopeat-core` は crates.io にありますが、CLI クレートがありません。
+**公開済み。** npm からインストール（対応プラットフォームのリリースバイナリをダウンロードします）：[`npm i -g @nathangzchow/nopeat`](https://www.npmjs.com/package/@nathangzchow/nopeat)。バイナリを取得するか、ソースからビルドすることもできます。`cargo install nopeat-cli` はまだ使えません：[`nopeat-core`](https://crates.io/crates/nopeat-core) は crates.io にありますが、CLI クレートがありません。
+
+**プラットフォーム：** Windows x64、macOS x64 と Apple silicon、Linux x64 / arm64 向けのプリビルドバイナリを同梱。それ以外は `cargo` でソースからビルドできます。
 
 ```bash
 # Linux and macOS
