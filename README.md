@@ -15,7 +15,6 @@ One binary, no Node runtime, no browser. Give it a `stats.json`, an esbuild
 the source file that caused it.
 
 [![CI](https://github.com/Nopeat/Nopeat/actions/workflows/ci.yml/badge.svg)](https://github.com/Nopeat/Nopeat/actions/workflows/ci.yml)
-[![status](https://img.shields.io/badge/status-unreleased-orange.svg)](#install)
 [![rust](https://img.shields.io/badge/rust-1.90%2B-000?logo=rust&logoColor=white)](https://doc.rust-lang.org/stable/notes.html)
 [![license](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 

@@ -10,7 +10,6 @@ echte Byte-Zuordnung aus Source Maps, esbuild-Metafiles oder einfach einem
 Speichers.
 
 [![CI](https://github.com/Nopeat/Nopeat/actions/workflows/ci.yml/badge.svg)](https://github.com/Nopeat/Nopeat/actions/workflows/ci.yml)
-[![status](https://img.shields.io/badge/status-unreleased-orange.svg)](#installation)
 [![MSRV](https://img.shields.io/badge/rust-1.90%2B-blue.svg)](https://doc.rust-lang.org/stable/notes.html)
 [![license](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 

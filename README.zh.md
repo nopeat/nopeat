@@ -10,7 +10,6 @@ esbuild metafile，或者一个普通的 `dist/` 目录——合并成同一张�
 Nopeat 是芬兰语 *nopea*（"快"）的复数形式，发音近似 "NO-peh-aht"。
 
 [![CI](https://github.com/Nopeat/Nopeat/actions/workflows/ci.yml/badge.svg)](https://github.com/Nopeat/Nopeat/actions/workflows/ci.yml)
-[![status](https://img.shields.io/badge/status-unreleased-orange.svg)](#安装)
 [![MSRV](https://img.shields.io/badge/rust-1.90%2B-blue.svg)](https://doc.rust-lang.org/stable/notes.html)
 [![license](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
