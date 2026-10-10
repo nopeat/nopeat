@@ -9,10 +9,14 @@ is a one-line change in a CI config.
 ## 1. Invocation
 
 ```
-nopeat <PATH> [OPTIONS]
+nopeat <PATH> [BUNDLE_DIR] [OPTIONS]
 
-  <PATH>                 a dist folder, a stats.json, or a *.map file.
-                         A folder is auto-scanned (see §4).
+  <PATH>                 a dist folder, a stats.json, a metafile.json, or a
+                         *.map file. A folder is auto-scanned (see §4).
+  [BUNDLE_DIR]           directory holding the emitted assets. Used when
+                         <PATH> is a metadata file; defaults to its parent,
+                         matching webpack-bundle-analyzer. Giving a folder as
+                         <PATH> already implies it.
 ```
 
 Exit codes:
@@ -30,7 +34,10 @@ regression.
 
 ## 2. Options
 
-| flag | values | default | wba / sme compatibility |
+Every webpack-bundle-analyzer CLI flag parses with the same spelling and the
+same short form; the last column says what to expect when it does.
+
+| flag | values | default | wba compatibility |
 |---|---|---|---|
 | `-m, --mode` | `static` \| `json` | `static` | `webpack-bundle-analyzer -m` |
 | `-r, --report` | path | `nopeat-report.html` | `webpack-bundle-analyzer -r` |
@@ -85,7 +92,8 @@ what it looked for.
 ## 5. Output determinism
 
 - `--mode json` writes the payload from `report-schema.json` to stdout, sorted
-  keys, trailing newline.
+  keys, trailing newline; with `-r <file>` it writes the same payload to that
+  file instead, matching wba's json mode.
 - `--mode static` writes one self-contained HTML file: payload inlined, no
   network requests, no external assets.
 - both honour `--dims` ordering; the summary line always names the size

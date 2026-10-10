@@ -178,7 +178,7 @@
       "properties": {
         "stat": { "type": "integer", "minimum": 0, "description": "what the bundler declared" },
         "parsed": { "type": "integer", "minimum": 0, "description": "measured from the emitted file" },
-        "gzip": { "type": "integer", "minimum": 0, "description": "gzip level 6, must byte-match the reference tools" },
+        "gzip": { "type": "integer", "minimum": 0, "description": "compressed bytes of the emitted file; algorithm selected by --compression-algorithm, default gzip level 6, must byte-match the reference tools" },
         "attributed": { "type": ["integer", "null"], "minimum": 0, "description": "source map ground truth" }
       }
     }

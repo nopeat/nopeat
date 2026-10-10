@@ -87,8 +87,9 @@ requests. Plus `--mode json` and `--mode csv`.
 ## The techniques
 
 Four, and each has a number behind it. The full records are in
-[`bench/results/`](bench/results/), measured per
-[`docs/schema/bench-spec.md`](docs/schema/bench-spec.md).
+[`bench/results/`](https://github.com/Nopeat/Nopeat/tree/main/bench/results/),
+measured per
+[`docs/schema/bench-spec.md`](https://github.com/Nopeat/Nopeat/blob/main/docs/schema/bench-spec.md).
 
 ### Streaming ingest, not a parse tree
 
@@ -162,9 +163,9 @@ is a stable string: grep for it.
 | code | severity | condition |
 |---|---|---|
 | `NPT0001` | warning | the stats file has no `modules` array, which is a dev-server export rather than a build |
-| `NPT0002` | error | no asset was found next to the metadata, so there is nothing to attribute |
+| `NPT0002` | info | an asset the metadata declared was not found next to it, so its bytes on disk could not be measured and it stays on its declared `stat` size |
 | `NPT0040` | error | a budget rule was breached; the command exits 1 |
-| `NPT0042` | error | a source map failed to parse. The map is named, because a silently dropped map shows up as a lower coverage figure that reads like a build that shipped no maps |
+| `NPT0042` | error | the size invariant was violated: on the `attributed` dimension, module sizes have to sum to the total within 1,000 ppm, so a failure means the join keys were wrong rather than that a rounding happened. A source map that fails to parse is *not* this code - it is printed as `could not read <name>: <reason>` and shows up only as lower coverage |
 | `NPT0050` | warning | no source maps sit next to the output, so only file sizes are known. Build with `--sourcemap` for per-source attribution |
 | `NPT0051` | info | no bundler metadata in the folder, so ghost code cannot be detected. It needs a declared graph to compare against |
 | `NPT0052` | info | modules with no name were skipped. webpack emits one for its runtime, and a module with no path cannot be attributed to a file |

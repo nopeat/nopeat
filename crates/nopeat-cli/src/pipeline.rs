@@ -1,3 +1,4 @@
+use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use anyhow::{Context, Result};
@@ -8,21 +9,24 @@ use nopeat_core::sizes;
 use nopeat_core::stats;
 
 use crate::budget::{BudgetConfig, evaluate_budget};
-use crate::cli_args::{Cli, Dims, Mode, Sizes};
+use crate::cli_args::{Cli, Dims, Level, Mode, Sizes};
 use crate::discover::{Input, discover, file_name, read_head, tool_for};
 use crate::payload::build_payload;
 use crate::report;
 
 pub fn run(cli: &Cli) -> Result<ExitCode> {
+    crate::cli_args::validate(cli)?;
     if cli.bench_map {
         return crate::bench::bench_source_map(&cli.path);
     }
-    if cli.mode == Mode::Server {
+    if cli.mode == Mode::Server && !cli.json {
         return crate::server::run_server(cli);
     }
+    let mode = if cli.json { Mode::Json } else { cli.mode };
 
     let started = std::time::Instant::now();
     let found = discover(&cli.path)?;
+    emit(cli, Level::Debug, &format!("input: {}", found.label()));
     let phase = std::time::Instant::now();
     let mut fusion: Option<(nopeat_core::fusion::FusionOutcome, usize)> = None;
 
@@ -62,10 +66,10 @@ pub fn run(cli: &Cli) -> Result<ExitCode> {
             budget_config_error = true;
         }
         for e in errors {
-            eprintln!("nopeat: {e}");
+            emit(cli, Level::Error, &format!("nopeat: {e}"));
         }
         for d in &breaches {
-            eprintln!("nopeat: {} {}", d.code, d.message);
+            emit(cli, Level::Error, &format!("nopeat: {} {}", d.code, d.message));
             graph.diagnostics.push(d.clone());
         }
         budget_failed = !ok;
@@ -90,10 +94,18 @@ pub fn run(cli: &Cli) -> Result<ExitCode> {
 
     let dims: Vec<Dimension> = dims_selected(cli);
 
-    let payload = build_payload(&graph, &found, &dims, cli.default_sizes, cli.mode == Mode::Json);
+    let payload = build_payload(&graph, &found, &dims, cli.default_sizes, mode == Mode::Json);
 
-    match cli.mode {
-        Mode::Json => println!("{}", serde_json::to_string_pretty(&payload)?),
+    match mode {
+        Mode::Json => match &cli.report {
+            Some(out) => {
+                let json = serde_json::to_string_pretty(&payload)?;
+                std::fs::write(out, format!("{json}\n"))
+                    .with_context(|| format!("writing {}", out.display()))?;
+                emit(cli, Level::Info, &format!("wrote {}", out.display()));
+            }
+            None => println!("{}", serde_json::to_string_pretty(&payload)?),
+        },
         Mode::Static => {
             write_static_report(cli, &graph, payload, fusion.as_ref(), started, ingest_ms)?;
         }
@@ -120,35 +132,46 @@ fn write_static_report(
     ingest_ms: u128,
 ) -> Result<()> {
     let label = payload.get("target").and_then(|v| v.as_str()).unwrap_or("bundle").to_string();
+    let title = cli.title.as_deref().unwrap_or(&label);
+    let out = cli.report.clone().unwrap_or_else(|| PathBuf::from("nopeat-report.html"));
 
     let used = dimension_used(graph);
     let requested = dimension_label(cli.default_sizes);
     let mut payload = payload;
     if let Some(obj) = payload.as_object_mut() {
         obj.insert("sizeDimension".into(), used.into());
+        obj.insert("compression".into(), cli.compression_algorithm.as_str().into());
     }
 
-    let detail_bytes = report::write_detail_file(graph, &cli.report)?;
-    report::write(&payload, &label, &cli.report, detail_bytes)?;
+    let detail_bytes = report::write_detail_file(graph, &out)?;
+    report::write(&payload, &label, title, &out, detail_bytes)?;
     if used != requested {
         let reason = if used == "attributed" {
             "source maps cover the build, so this is ground truth"
         } else {
             "that dimension is not measurable for this input"
         };
-        println!("showing `{used}` instead of `{requested}`: {reason} (NPT0050)");
+        emit(
+            cli,
+            Level::Info,
+            &format!("showing `{used}` instead of `{requested}`: {reason} (NPT0050)"),
+        );
     }
-    let report_bytes = std::fs::metadata(&cli.report).map_or(0, |m| m.len());
-    println!(
-        "{}{}  ·  {} modules  ·  {} assets  ·  {} packages  ·  ingest {} ms  ·  total {} ms  ·  dimension {}",
-        label,
-        gzip_summary(&graph.assets),
-        graph.totals.module_count,
-        graph.totals.asset_count,
-        graph.totals.package_count,
-        ingest_ms,
-        started.elapsed().as_millis(),
-        used,
+    let report_bytes = std::fs::metadata(&out).map_or(0, |m| m.len());
+    emit(
+        cli,
+        Level::Info,
+        &format!(
+            "{}{}  ·  {} modules  ·  {} assets  ·  {} packages  ·  ingest {} ms  ·  total {} ms  ·  dimension {}",
+            label,
+            compressed_summary(&graph.assets, cli.compression_algorithm),
+            graph.totals.module_count,
+            graph.totals.asset_count,
+            graph.totals.package_count,
+            ingest_ms,
+            started.elapsed().as_millis(),
+            used,
+        ),
     );
     if let Some(&(outcome, maps)) = fusion {
         let ghost = if outcome.ghosts_detectable {
@@ -160,17 +183,20 @@ fn write_static_report(
         } else {
             "ghost code needs a stats.json to detect".to_string()
         };
-        println!(
-            "fusion: {maps} map(s) · coverage {:.0}% · {}/{} modules attributed · {ghost} · {} hidden source(s) ({})",
-            outcome.coverage * 100.0,
-            outcome.attributed_modules,
-            graph.totals.module_count,
-            outcome.hidden_count,
-            human_bytes(outcome.hidden_bytes),
+        emit(
+            cli,
+            Level::Info,
+            &format!(
+                "fusion: {maps} map(s) · coverage {:.0}% · {}/{} modules attributed · {ghost} · {} hidden source(s) ({})",
+                outcome.coverage * 100.0,
+                outcome.attributed_modules,
+                graph.totals.module_count,
+                outcome.hidden_count,
+                human_bytes(outcome.hidden_bytes),
+            ),
         );
     }
 
-    // Display math: a report size in MB, to one decimal.
     let report_mb = report_bytes as f64 / 1_048_576.0;
     let csv_note = if let Some(csv_path) = &cli.csv {
         let mut out = std::io::BufWriter::new(
@@ -183,14 +209,18 @@ fn write_static_report(
     } else {
         String::new()
     };
-    println!(
-        "wrote {} ({report_mb:.1} MB){csv_note}{}",
-        cli.report.display(),
-        if detail_bytes <= report::INLINE_LIMIT as u64 {
-            ", detail inlined"
-        } else {
-            ", detail in a companion script (loaded on demand)"
-        }
+    emit(
+        cli,
+        Level::Info,
+        &format!(
+            "wrote {} ({report_mb:.1} MB){csv_note}{}",
+            out.display(),
+            if detail_bytes <= report::INLINE_LIMIT as u64 {
+                ", detail inlined"
+            } else {
+                ", detail in a companion script (loaded on demand)"
+            }
+        ),
     );
     Ok(())
 }
@@ -205,7 +235,35 @@ pub fn build_graph(
             let head = read_head(path, 512 * 1024)?;
             let name = file_name(path);
             let tool = tool_for(path, &head);
-            stats::ingest_file(path, tool).with_context(|| format!("parsing {name}"))
+            let mut graph =
+                stats::ingest_file(path, tool).with_context(|| format!("parsing {name}"))?;
+
+            let dir = cli.bundle_dir.clone().or_else(|| path.parent().map(Path::to_path_buf));
+            if let Some(dir) = &dir {
+                let explicit = cli.bundle_dir.is_some();
+                let resolves = graph.assets.iter().any(|a| dir.join(&a.name).is_file());
+                if explicit || resolves {
+                    sizes::attribute_from_disk(
+                        &mut graph,
+                        dir,
+                        cli.compression_algorithm.to_core(),
+                    )?;
+
+                    let (maps, unreadable) = nopeat_core::fusion::maps_in_dir_detailed(dir);
+                    for why in &unreadable {
+                        emit(cli, Level::Warn, &format!("could not read {why}"));
+                    }
+                    if !maps.is_empty() {
+                        let outcome = if matches!(tool, "webpack" | "esbuild") {
+                            nopeat_core::fusion::analyse(&mut graph, &maps)
+                        } else {
+                            nopeat_core::fusion::analyse_sources_only(&mut graph, &maps)
+                        };
+                        *fusion = Some((outcome, maps.len()));
+                    }
+                }
+            }
+            Ok(graph)
         }
         Input::Folder(dir) => {
             let candidates = [
@@ -234,7 +292,10 @@ pub fn build_graph(
                     )
                 })?;
 
-                let report_name = cli.report.file_name().map(|n| n.to_string_lossy().to_string());
+                let report_name = cli
+                    .report
+                    .as_ref()
+                    .and_then(|p| p.file_name().map(|n| n.to_string_lossy().to_string()));
                 if let Some(name) = &report_name {
                     graph.assets.retain(|a| &a.name != name);
 
@@ -245,11 +306,11 @@ pub fn build_graph(
                 }
                 graph
             };
-            sizes::attribute_from_disk(&mut graph, dir)?;
+            sizes::attribute_from_disk(&mut graph, dir, cli.compression_algorithm.to_core())?;
 
             let (maps, unreadable) = nopeat_core::fusion::maps_in_dir_detailed(dir);
             for why in &unreadable {
-                println!("could not read {why}");
+                emit(cli, Level::Warn, &format!("could not read {why}"));
             }
             if !maps.is_empty() {
                 let outcome = if has_module_graph {
@@ -293,8 +354,17 @@ pub fn dimension_label(s: Sizes) -> &'static str {
     match s {
         Sizes::Stat => "stat",
         Sizes::Parsed => "parsed",
-        Sizes::Gzip => "gzip",
+        Sizes::Gzip | Sizes::Brotli | Sizes::Zstd => "gzip",
         Sizes::Attributed => "attributed",
+    }
+}
+
+pub fn emit(cli: &Cli, level: Level, message: &str) {
+    if cli.log_level.shows(level) {
+        match level {
+            Level::Error => eprintln!("{message}"),
+            Level::Warn | Level::Info | Level::Debug => println!("{message}"),
+        }
     }
 }
 
@@ -388,21 +458,25 @@ pub fn apply_min_size(graph: &mut UnifiedBundleGraph, min_size: u64) -> u64 {
     dropped_count
 }
 
-pub fn gzip_summary(assets: &[nopeat_core::model::Asset]) -> String {
+pub fn compressed_summary(
+    assets: &[nopeat_core::model::Asset],
+    algo: crate::cli_args::Compression,
+) -> String {
     let measured = assets.iter().filter(|a| a.sizes.gzip > 0).count();
     match (measured, assets.len()) {
         (0, _) => String::new(),
         (m, t) if m == t => {
             let total: u64 = assets.iter().map(|a| a.sizes.gzip).sum();
-            format!("  ·  gzip {}", human_bytes(total))
+            format!("  ·  {} {}", algo.as_str(), human_bytes(total))
         }
-        (m, t) => format!("  ·  gzip (partial {m}/{t})"),
+        (m, t) => format!("  ·  {} (partial {m}/{t})", algo.as_str()),
     }
 }
 
 #[cfg(test)]
 mod exclude_tests {
-    use super::{apply_excludes, apply_includes, apply_min_size, gzip_summary};
+    use super::{apply_excludes, apply_includes, apply_min_size, compressed_summary};
+    use crate::cli_args::Compression;
     use nopeat_core::model::{Asset, Chunk, SizeSet, UnifiedBundleGraph};
 
     fn graph() -> UnifiedBundleGraph {
@@ -508,7 +582,7 @@ mod exclude_tests {
     }
 
     #[test]
-    fn gzip_summary_has_three_states() {
+    fn compressed_summary_names_the_algorithm_and_has_three_states() {
         use nopeat_core::model::{Asset, SizeSet};
         let mk = |gzip: u64| Asset {
             name: "a.js".into(),
@@ -516,10 +590,18 @@ mod exclude_tests {
             chunks: vec![],
             sizes: SizeSet { gzip, ..SizeSet::default() },
         };
-        assert_eq!(gzip_summary(&[]), "");
-        assert_eq!(gzip_summary(&[mk(0)]), "");
-        assert_eq!(gzip_summary(&[mk(100), mk(0)]), "  ·  gzip (partial 1/2)");
-        assert_eq!(gzip_summary(&[mk(100), mk(24)]), "  ·  gzip 124 B");
+        assert_eq!(compressed_summary(&[], Compression::Gzip), "");
+        assert_eq!(compressed_summary(&[mk(0)], Compression::Gzip), "");
+        assert_eq!(
+            compressed_summary(&[mk(100), mk(0)], Compression::Gzip),
+            "  ·  gzip (partial 1/2)"
+        );
+        assert_eq!(compressed_summary(&[mk(100), mk(24)], Compression::Gzip), "  ·  gzip 124 B");
+        assert_eq!(
+            compressed_summary(&[mk(100), mk(24)], Compression::Brotli),
+            "  ·  brotli 124 B"
+        );
+        assert_eq!(compressed_summary(&[mk(100), mk(24)], Compression::Zstd), "  ·  zstd 124 B");
     }
 
     fn graph_with_modules(modules: Vec<(&str, u64)>) -> UnifiedBundleGraph {

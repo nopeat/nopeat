@@ -3,10 +3,10 @@
 <img src="assets/logo.svg" alt="Nopeat logo" width="76" />
 
 # Nopeat
-just a simple bundle analyzer that reduce memory usage and save your time,
 
+Just a simple bundle analyzer that reduces memory usage and saves your time —
+29× faster, 3.8× less memory.
 
-30x faster, 4x less memory 
 **Bundle analysis in Rust. On a 1 GB `stats.json` with 445,602 modules it takes
 6.1 s and 376 MB, where webpack-bundle-analyzer takes 176 s and 1.4 GB.**
 
@@ -15,7 +15,6 @@ One binary, no Node runtime, no browser. Give it a `stats.json`, an esbuild
 the source file that caused it.
 
 [![CI](https://github.com/Nopeat/Nopeat/actions/workflows/ci.yml/badge.svg)](https://github.com/Nopeat/Nopeat/actions/workflows/ci.yml)
-[![status](https://img.shields.io/badge/status-unreleased-orange.svg)](#install)
 [![rust](https://img.shields.io/badge/rust-1.90%2B-000?logo=rust&logoColor=white)](https://doc.rust-lang.org/stable/notes.html)
 [![license](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
@@ -73,7 +72,7 @@ reported as undetectable (`NPT0051`) instead of as a reassuring zero.
 |---|---|---|---|
 | **webpack** 4 / 5 | `stats.json` | no | yes |
 | **rspack** | `stats.json`, same schema | no | yes |
-| **esbuild** | `metafile.json`, or the folder | with `--metafile`, no | with `--metafile`, yes |
+| **esbuild** | `metafile.json`, or the folder | with a metafile, no | with a metafile, yes |
 | **Vite** · **Rollup** · **Parcel** · **tsup** | the folder and its maps | yes | needs a `stats.json` |
 | **Angular** · **Next.js** · **Nuxt** · **SvelteKit** | whatever they emit, which is webpack or Vite output | depends | depends |
 
@@ -164,8 +163,7 @@ network requests.</sub>
 ## Install
 
 **Published.** Install from npm (downloads the release binary for your platform):
-`npm i -g @nathangzchow/nopeat`, or `cargo install nopeat-cli`. Or grab a binary, or
-build it:
+`npm i -g @nathangzchow/nopeat`. Or grab a binary, or build it:
 
 ```bash
 # Linux and macOS
@@ -192,11 +190,13 @@ anything:
 sha256sum -c checksums.txt
 ```
 
-The npm wrapper is deliberately absent for now. It downloads its binary from
-this release rather than shipping one, so publishing the package before the
-release existed would put an install command in front of people that 404s. The
-installer checks `checksums.txt`
-before writing or executing anything.
+The npm wrapper downloads its binary from this release rather than shipping
+one, and checks `checksums.txt` before writing or executing anything.
+
+`cargo install nopeat-cli` does not work yet: `nopeat-core` is on crates.io,
+the CLI crate is not, so that command fails today. Build from source, or use
+one of the two routes above; the crate comes back in the commit that publishes
+it.
 
 ## Use
 
@@ -215,9 +215,9 @@ nopeat ./dist/map.js.map --bench-map                 # attribution only, timed
 // nopeat.config.json
 {
   "limits": [
-    { "scope": "total",   "max": 1_500_000 },
-    { "scope": "chunk",   "match": "vendor", "max": 800_000 },
-    { "scope": "package", "match": "moment", "max": 250_000, "dimension": "gzip" }
+    { "scope": "total",   "max": 1500000 },
+    { "scope": "chunk",   "match": "vendor", "max": 800000 },
+    { "scope": "package", "match": "moment", "max": 250000, "dimension": "gzip" }
   ]
 }
 ```
@@ -248,7 +248,8 @@ Pre-1.0. Anything unmeasured says so.
 | 1 GB ingest wall clock | **misses**: 4.40 s against a 3 s target, at 350 MB |
 | report first paint / 30 fps | **unverified** — no browser in CI; measured instead as 1.56 MB and 1.27 s at 154,379 modules |
 | WASM build, WebGL renderer | not started |
-| crates.io, npm | not published |
+| npm (`@nathangzchow/nopeat`) | published |
+| crates.io | `nopeat-core` published; `nopeat-cli` **not published**, so `cargo install nopeat-cli` fails |
 | GitHub release | v2.1.1 published, 5 targets, with sha256 checksums |
 | tests | 82 Rust, 4 npm, 1,018 generated layout cases |
 | coverage | 82.19% of lines, against a 70% floor |
@@ -272,6 +273,8 @@ in full in the [changelog](CHANGELOG.md).
 
 ## Documentation
 
+- [Documentation site](https://nopeat.github.io/Nopeat) — install, guides, CLI
+  reference, diagnostics, glossary and the contracts below, as a book
 - [Architecture](ARCHITECTURE.md) — how it works, module by module, and why
 - [Payload schema](docs/schema/unified-graph.md) and [report schema](docs/schema/report-schema.json)
 - [Benchmark protocol](docs/schema/bench-spec.md) — how every number above was measured

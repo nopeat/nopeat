@@ -21,25 +21,24 @@ dist/
 report*.html
 *-report.html
 
-# mdbook site: sources (docs/) and build output stay out of version control.
+# mdbook build output. The sources under docs/ are versioned - that is the
+# point of restoring the book - only what `mdbook build` generates is not.
 book/
 
 # webpack-bundle-analyzer's raw json export: written by every parity run, and it is
 # the reference tool's output, not a record of ours.
 bench/results/parity-wba.json
 
-# The prose under docs/ is not published. `docs/assets/` and `docs/schema/` are,
-# and a bare `docs/` would take both with it: the README embeds six figures from
-# the first and links four contract files in the second, so ignoring the whole
-# tree ships a front page with broken images and dead links.
-docs/*
-!docs/assets/
-!docs/schema/
+# docs/ is the mdbook source tree: prose, assets and schema contracts are all
+# versioned, because `mdbook build` fails on a SUMMARY entry whose file is
+# missing and a book that only builds on the maintainer's machine is not a book.
+# The one exception is the last entry in this file.
 
 history-rewrite-report.md
 aiscan_tmp.py
 
-# Not published: the curated issue list, which is a working document rather than
-# a document anyone reads. It is gitignored rather than deleted because it is
-# kept up to date and pushed to GitHub by hand once it is ready.
+# The only file under docs/ that is not published: the curated issue list, which
+# is a working document rather than a document anyone reads. It is gitignored
+# rather than deleted because it is kept up to date and pushed to GitHub by hand
+# once it is ready.
 docs/good-first-issues.md

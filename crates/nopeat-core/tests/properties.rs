@@ -169,7 +169,8 @@ fn a_measurement_smaller_than_the_claim_is_still_labelled_parsed() {
         },
     );
 
-    sizes::attribute_from_disk(&mut graph, &dir).expect("the asset is on disk");
+    sizes::attribute_from_disk(&mut graph, &dir, sizes::Compression::Gzip)
+        .expect("the asset is on disk");
 
     let module = &graph.modules["./src/big.js"];
 
@@ -195,7 +196,8 @@ fn a_measurement_smaller_than_the_claim_is_still_labelled_parsed() {
         assets: vec!["main.js".into()],
         size: SizeSet { stat: 1_000_000, ..SizeSet::default() },
     });
-    sizes::attribute_from_disk(&mut graph2, &empty).expect("a missing asset is not fatal");
+    sizes::attribute_from_disk(&mut graph2, &empty, sizes::Compression::Gzip)
+        .expect("a missing asset is not fatal");
     let asset = graph2.assets.iter().find(|a| a.name == "main.js").expect("asset");
 
     assert_eq!(asset.sizes.parsed, 0, "no measurement means no parsed size");

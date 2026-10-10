@@ -10,7 +10,6 @@ esbuild metafile，或者一个普通的 `dist/` 目录——合并成同一张�
 Nopeat 是芬兰语 *nopea*（"快"）的复数形式，发音近似 "NO-peh-aht"。
 
 [![CI](https://github.com/Nopeat/Nopeat/actions/workflows/ci.yml/badge.svg)](https://github.com/Nopeat/Nopeat/actions/workflows/ci.yml)
-[![status](https://img.shields.io/badge/status-unreleased-orange.svg)](#安装)
 [![MSRV](https://img.shields.io/badge/rust-1.90%2B-blue.svg)](https://doc.rust-lang.org/stable/notes.html)
 [![license](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
@@ -79,7 +78,7 @@ reported as undetectable (`NPT0051`) instead of as a reassuring zero.
 |---|---|---|---|
 | **webpack** 4 / 5 | `stats.json` | 不需要 | 支持 |
 | **rspack** | `stats.json`（同一套 schema） | 不需要 | 支持 |
-| **esbuild** | `metafile.json`，或直接读产物目录 | 用 `--metafile` 就不需要 | 用 `--metafile` 时支持 |
+| **esbuild** | `metafile.json`，或直接读产物目录 | 有 metafile 就不需要 | 有 metafile 时支持 |
 | **Vite** | 产物目录和它的 source map | 需要 | 需要开启 `--stats` 输出 |
 | **Rollup** | 产物目录和它的 source map | 需要 | 需要 `stats.json` |
 | **Parcel** | 产物目录和它的 source map | 需要 | 需要 `stats.json` |
@@ -173,7 +172,7 @@ HTML 报告另外还有搜索、三种分组维度、按模块下钻、明暗主
 
 ## 安装
 
-**已发布。** 从 npm 安装（会下载对应平台的发布二进制）：`npm i -g @nathangzchow/nopeat`，或 `cargo install nopeat-cli`。也可以从源码构建：
+**已发布。** 从 npm 安装（会下载对应平台的发布二进制）：`npm i -g @nathangzchow/nopeat`；也可以抓取二进制发布，或从源码构建。`cargo install nopeat-cli` 目前还用不了：`nopeat-core` 已经上架 crates.io，CLI crate 还没有。
 
 ```bash
 # Linux and macOS
@@ -288,6 +287,7 @@ nopeat ./dist/map.js.map --bench-map            # 只跑归因，并计时
 
 ## 文档
 
+- [文档站点](https://nopeat.github.io/Nopeat)——安装、指南、CLI 参考、诊断码、术语表，以及下面这些契约，成书形式
 - [产品需求](ARCHITECTURE.md) · [证据日志](ARCHITECTURE.md) · [架构](ARCHITECTURE.md)
 - [基准与目标](docs/schema/bench-spec.md) · [一致性与测试](docs/schema/bench-spec.md) · [发布与 CI](CONTRIBUTING.md)
 - [契约](docs/schema/unified-graph.md)——payload schema、CLI 接口、基准协议、i18n 规则、归属

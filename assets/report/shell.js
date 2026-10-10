@@ -3,6 +3,10 @@
 
   var DATA = readPayload();
   var DETAIL = readDetail();
+  if (DATA.compression && DATA.compression !== "gzip") {
+    var gzBtn = document.querySelector('button[data-dim="gzip"]');
+    if (gzBtn) gzBtn.textContent = DATA.compression;
+  }
   var state = {
     dim: "package",
     measure: "parsed",

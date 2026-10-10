@@ -48,6 +48,11 @@
       "value": "https://crates.io/crates/nopeat-core",
       "example": "https://crates.io/crates/nopeat-core",
       "note": "The crates.io page for the core crate. Same rule as NPM_URL: no crates.io badge and no offered `cargo install nopeat-cli` until this is set."
+    },
+    "DOCS_URL": {
+      "value": "https://nopeat.github.io/Nopeat",
+      "example": "https://your-name.github.io/nopeat",
+      "note": "The documentation site home page. GitHub Pages serves a project site from /<repository>/ and that path is case sensitive, so the value is the repository name as spelled, not lowercased. The same checker rule as the rest applies: while any token is empty, a hardcoded nopeat.github.io URL anywhere in the tree is treated as invented."
     }
   }
 }

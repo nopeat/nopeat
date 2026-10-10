@@ -12,14 +12,7 @@ fn is_asset(path: &Path) -> bool {
 }
 
 pub fn package_of(path: &str) -> Option<(String, String)> {
-    let idx = path.find("node_modules/")?;
-    let rest = &path[idx + "node_modules/".len()..];
-    let segment = rest.split(['/', '\\']).next()?;
-    if segment.is_empty() {
-        return None;
-    }
-    let root = format!("node_modules/{segment}");
-    Some((segment.to_string(), root))
+    crate::stats::package_of(path)
 }
 
 pub fn ingest(dir: &Path) -> Result<UnifiedBundleGraph> {
@@ -174,7 +167,7 @@ mod tests {
         );
         assert_eq!(
             package_of("/repo/node_modules/@scope/pkg/dist/x.js"),
-            Some(("@scope".to_string(), "node_modules/@scope".to_string()))
+            Some(("@scope/pkg".to_string(), "node_modules/@scope/pkg".to_string()))
         );
         assert_eq!(package_of("./src/app.ts"), None);
     }
