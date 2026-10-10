@@ -17,11 +17,16 @@ struct ServerState {
 }
 
 pub fn run_server(cli: &Cli) -> Result<ExitCode> {
-    let listener = std::net::TcpListener::bind(format!("127.0.0.1:{}", cli.port))
-        .with_context(|| format!("binding 127.0.0.1:{}", cli.port))?;
+    let port = cli.port_number()?;
+    let listener = std::net::TcpListener::bind(format!("{}:{}", cli.host, port))
+        .with_context(|| format!("binding {}:{}", cli.host, port))?;
     let addr = listener.local_addr().with_context(|| "reading the bound address")?;
     let url = format!("http://{addr}/");
-    println!("nopeat: watching {} — live report at {url} (Ctrl-C to stop)", cli.path.display());
+    crate::pipeline::emit(
+        cli,
+        crate::cli_args::Level::Info,
+        &format!("nopeat: watching {} — live report at {url} (Ctrl-C to stop)", cli.path.display()),
+    );
     let state = std::sync::Arc::new(std::sync::Mutex::new(ServerState {
         stamp: 0,
         html: Vec::new(),
@@ -107,10 +112,12 @@ fn regenerate(cli: &Cli) -> Result<(String, Vec<u8>)> {
     let dims = dims_selected(cli);
     let mut payload = build_payload(&graph, &found, &dims, cli.default_sizes, false);
     let used = dimension_used(&graph);
+    let label = payload.get("target").and_then(|v| v.as_str()).unwrap_or("bundle").to_string();
+    let title = cli.title.as_deref().unwrap_or(&label);
     if let Some(obj) = payload.as_object_mut() {
         obj.insert("sizeDimension".into(), used.into());
+        obj.insert("compression".into(), cli.compression_algorithm.as_str().into());
     }
-    let label = payload.get("target").and_then(|v| v.as_str()).unwrap_or("bundle").to_string();
 
     let mut detail_json = Vec::new();
     nopeat_core::report::write_detail(&graph, &mut detail_json)?;
@@ -119,7 +126,7 @@ fn regenerate(cli: &Cli) -> Result<(String, Vec<u8>)> {
     detail_js.extend_from_slice(b";\n");
 
     let inline = detail_js.len() <= report::INLINE_LIMIT;
-    let mut html = report::render(&payload, &label, &detail_json, inline)?;
+    let mut html = report::render(&payload, &label, title, &detail_json, inline)?;
     if !inline {
         html = html.replace(report::DATA_SCRIPT_PLACEHOLDER, "detail.js");
     }

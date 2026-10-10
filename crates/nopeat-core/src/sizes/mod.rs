@@ -7,7 +7,28 @@ use rayon::prelude::*;
 use crate::Result;
 use crate::model::{SizeSet, UnifiedBundleGraph};
 
-pub fn attribute_from_disk(graph: &mut UnifiedBundleGraph, dir: &Path) -> Result<()> {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Compression {
+    Gzip,
+    Brotli,
+    Zstd,
+}
+
+impl Compression {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Compression::Gzip => "gzip",
+            Compression::Brotli => "brotli",
+            Compression::Zstd => "zstd",
+        }
+    }
+}
+
+pub fn attribute_from_disk(
+    graph: &mut UnifiedBundleGraph,
+    dir: &Path,
+    compression: Compression,
+) -> Result<()> {
     let targets: Vec<(usize, String, std::path::PathBuf)> = graph
         .assets
         .iter()
@@ -18,7 +39,7 @@ pub fn attribute_from_disk(graph: &mut UnifiedBundleGraph, dir: &Path) -> Result
     let measured: Vec<(usize, u64, u64)> = targets
         .par_iter()
         .map(|(idx, _name, path)| match std::fs::read(path) {
-            Ok(bytes) => (*idx, bytes.len() as u64, gzip_size(&bytes)),
+            Ok(bytes) => (*idx, bytes.len() as u64, compressed_size(&bytes, compression)),
 
             Err(_) => (*idx, 0, 0),
         })
@@ -126,9 +147,31 @@ pub fn gzip_size(bytes: &[u8]) -> u64 {
     enc.finish().map_or(0, |v| v.len() as u64)
 }
 
+pub fn compressed_size(bytes: &[u8], algo: Compression) -> u64 {
+    match algo {
+        Compression::Gzip => gzip_size(bytes),
+        Compression::Brotli => brotli_size(bytes),
+        Compression::Zstd => zstd_size(bytes),
+    }
+}
+
+fn brotli_size(bytes: &[u8]) -> u64 {
+    let mut out = Vec::new();
+    let mut enc = brotli::CompressorWriter::new(&mut out, 4096, 11, 22);
+    if enc.write_all(bytes).is_err() || enc.flush().is_err() {
+        return 0;
+    }
+    drop(enc);
+    out.len() as u64
+}
+
+fn zstd_size(bytes: &[u8]) -> u64 {
+    zstd::stream::encode_all(bytes, 3).map_or(0, |v| v.len() as u64)
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{attribute_from_disk, gzip_size};
+    use super::{Compression, attribute_from_disk, compressed_size, gzip_size};
     use crate::model::{Asset, Chunk, Module, SizeSet, UnifiedBundleGraph};
     use std::collections::BTreeMap;
 
@@ -141,6 +184,25 @@ mod tests {
         let gz = gzip_size(&repetitive);
         assert!(gz > 0 && gz < repetitive.len() as u64 / 100, "64 KB of 'a' must compress hard");
         assert_eq!(gz, gzip_size(&repetitive), "must be deterministic at scale");
+    }
+
+    #[test]
+    fn every_compression_algorithm_is_deterministic_and_actually_compresses() {
+        let repetitive = vec![b'a'; 64 * 1024];
+        for algo in [Compression::Gzip, Compression::Brotli, Compression::Zstd] {
+            let first = compressed_size(&repetitive, algo);
+            assert!(first > 0 && first < repetitive.len() as u64 / 100, "{algo:?}: {first}");
+            assert_eq!(first, compressed_size(&repetitive, algo), "{algo:?} must be deterministic");
+        }
+        let small = b"the quick brown fox jumps over the lazy dog";
+        let gzip = compressed_size(small, Compression::Gzip);
+        let brotli = compressed_size(small, Compression::Brotli);
+        let zstd = compressed_size(small, Compression::Zstd);
+        assert!(gzip > 0 && brotli > 0 && zstd > 0);
+        assert!(
+            brotli <= gzip && zstd <= gzip,
+            "brotli ({brotli}) and zstd ({zstd}) should not lose to gzip ({gzip}) on compressible text"
+        );
     }
 
     #[test]
@@ -159,7 +221,12 @@ mod tests {
             assets: vec!["gone.js".into()],
             size: SizeSet::default(),
         });
-        attribute_from_disk(&mut g, std::path::Path::new("/definitely/not/here")).unwrap();
+        attribute_from_disk(
+            &mut g,
+            std::path::Path::new("/definitely/not/here"),
+            Compression::Gzip,
+        )
+        .unwrap();
         assert!(g.diagnostics.iter().any(|d| d.code == "NPT0002"));
     }
 
@@ -200,7 +267,7 @@ mod tests {
         }
         g.modules = modules;
 
-        attribute_from_disk(&mut g, &dir).unwrap();
+        attribute_from_disk(&mut g, &dir, Compression::Gzip).unwrap();
 
         assert_eq!(g.assets[0].sizes.parsed, 4096);
         assert!(g.assets[0].sizes.gzip > 0);
@@ -223,7 +290,11 @@ mod tests {
             sizes: SizeSet { stat: 10, ..SizeSet::default() },
         });
 
-        let result = attribute_from_disk(&mut g, std::path::Path::new("/definitely/not/here"));
+        let result = attribute_from_disk(
+            &mut g,
+            std::path::Path::new("/definitely/not/here"),
+            Compression::Gzip,
+        );
         assert!(result.is_ok(), "a missing dir is data, not a crash: {result:?}");
         assert!(g.diagnostics.iter().any(|d| d.code == "NPT0002"));
         assert_eq!(g.assets[0].sizes.parsed, 0, "an unmeasured asset stays 0, not a guess");

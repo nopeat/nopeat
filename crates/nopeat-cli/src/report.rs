@@ -10,7 +10,8 @@ pub const DATA_SCRIPT_PLACEHOLDER: &str = "REPLACED_BY_DATA_SCRIPT";
 
 pub fn render(
     payload: &serde_json::Value,
-    target: &str,
+    _target: &str,
+    title: &str,
     detail: &[u8],
     inline_detail: bool,
 ) -> Result<String> {
@@ -26,11 +27,15 @@ pub fn render(
     };
 
     Ok(HTML
-        .replace("/*TITLE*/", target)
+        .replace("/*TITLE*/", &escape_html(title))
         .replace("/*CSS*/", CSS)
         .replace("/*PAYLOAD*/", &json)
         .replace("<!--DETAIL-->", &detail_block)
         .replace("/*JS*/", JS))
+}
+
+fn escape_html(s: &str) -> String {
+    s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;")
 }
 
 pub fn write_detail_file(
@@ -53,6 +58,7 @@ pub fn write_detail_file(
 pub fn write(
     payload: &serde_json::Value,
     target: &str,
+    title: &str,
     out: &std::path::Path,
     detail_bytes: u64,
 ) -> Result<()> {
@@ -61,13 +67,13 @@ pub fn write(
     let html = if inline_detail {
         let detail = std::fs::read(&data_path)
             .with_context(|| format!("reading back {}", data_path.display()))?;
-        render(payload, target, &detail, true)?
+        render(payload, target, title, &detail, true)?
     } else {
         let file_name = data_path
             .file_name()
             .map_or_else(|| "report.data.js".to_string(), |n| n.to_string_lossy().to_string());
 
-        let mut html = render(payload, target, &[], false)?;
+        let mut html = render(payload, target, title, &[], false)?;
         html = html.replace(DATA_SCRIPT_PLACEHOLDER, &file_name);
         html
     };

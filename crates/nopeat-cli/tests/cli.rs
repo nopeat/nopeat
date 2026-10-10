@@ -315,3 +315,209 @@ fn server_mode_serves_the_report_and_a_stamp_endpoint() {
     let _ = child.kill();
     let _ = child.wait();
 }
+
+fn fixture(dir: &std::path::Path) {
+    let map = two_source_map(2_048);
+    fs::write(dir.join("index.js"), vec![b'x'; 4_096]).expect("write bundle");
+    fs::write(dir.join("index.js.map"), map.as_bytes()).expect("write map");
+}
+
+fn run_args(dir: &Path, args: &[&str]) -> (String, String, i32) {
+    let out = Command::new(binary()).arg(dir).args(args).output().expect("the CLI runs");
+    (
+        String::from_utf8_lossy(&out.stdout).to_string(),
+        String::from_utf8_lossy(&out.stderr).to_string(),
+        out.status.code().unwrap_or(-1),
+    )
+}
+
+#[test]
+fn the_wba_flags_host_port_auto_title_and_no_open_all_work() {
+    use std::io::{Read, Write};
+
+    let dir = temp_dir("wba-flags");
+    fixture(&dir);
+
+    let mut child = Command::new(binary())
+        .arg(&dir)
+        .args(["--mode", "server", "--host", "127.0.0.1", "--port", "auto", "-O"])
+        .stdout(std::process::Stdio::piped())
+        .spawn()
+        .expect("the CLI server starts");
+    let stdout = child.stdout.take().expect("stdout");
+    let url = {
+        use std::io::BufRead;
+        let mut reader = std::io::BufReader::new(stdout);
+        let mut line = String::new();
+        reader.read_line(&mut line).expect("the server prints its URL");
+        line.split_whitespace()
+            .find(|w| w.starts_with("http://"))
+            .expect("the URL is announced: {line}")
+            .to_string()
+    };
+    assert!(url.starts_with("http://127.0.0.1:"), "auto picked a real port: {url}");
+    assert_ne!(url, "http://127.0.0.1:8888/", "auto must not be the default port");
+    let mut probe =
+        std::net::TcpStream::connect(url.trim_start_matches("http://").trim_end_matches('/'))
+            .expect("the auto port is reachable");
+    probe
+        .write_all(b"GET / HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n")
+        .expect("request the report");
+    let mut raw = String::new();
+    probe.read_to_string(&mut raw).expect("read response");
+    assert!(
+        raw.starts_with("HTTP/1.1 200"),
+        "the report is served: {}",
+        raw.lines().next().unwrap_or_default()
+    );
+    let _ = child.kill();
+    let _ = child.wait();
+
+    let (_stdout, stderr, code) = run_args(
+        &dir,
+        &[
+            "--mode",
+            "static",
+            "-r",
+            dir.join("t.html").to_str().expect("path"),
+            "-t",
+            "My & Report <2>",
+        ],
+    );
+    assert_eq!(code, 0, "stderr: {stderr}");
+    let html = fs::read_to_string(dir.join("t.html")).expect("report exists");
+    assert!(
+        html.contains("<title>My &amp; Report &lt;2&gt;</title>"),
+        "the title lands escaped in the title element"
+    );
+}
+
+#[test]
+fn an_invalid_port_is_rejected_like_wba_rejects_it() {
+    let dir = temp_dir("bad-port");
+    fixture(&dir);
+    let (stdout, stderr, code) = run_args(&dir, &["--mode", "server", "--port", "notanumber"]);
+    assert_ne!(code, 0, "stdout: {stdout}");
+    assert!(stderr.contains("invalid port"), "stderr: {stderr}");
+}
+
+#[test]
+fn log_level_silent_silences_everything() {
+    let dir = temp_dir("log-silent");
+    fixture(&dir);
+    let (stdout, stderr, code) = run_args(
+        &dir,
+        &["--mode", "static", "-r", dir.join("r.html").to_str().expect("path"), "-l", "silent"],
+    );
+    assert_eq!(code, 0, "stderr: {stderr}");
+    assert!(stdout.is_empty(), "silent stdout: {stdout}");
+    assert!(stderr.is_empty(), "silent stderr: {stderr}");
+}
+
+#[test]
+fn log_level_error_hides_informational_output() {
+    let dir = temp_dir("log-error");
+    fs::write(dir.join("index.js"), vec![b'x'; 4_096]).expect("write bundle");
+    fs::write(dir.join("index.js.map"), br#"{"version":3,"sources":["a.ts"],"mapp"#)
+        .expect("write truncated map");
+    let (stdout, _stderr, code) = run_args(
+        &dir,
+        &["--mode", "static", "-r", dir.join("r.html").to_str().expect("path"), "-l", "error"],
+    );
+    assert_eq!(code, 0);
+    assert!(
+        !stdout.contains("could not read"),
+        "a warn must not surface at --log-level error: {stdout}"
+    );
+}
+
+#[test]
+fn compression_algorithm_changes_what_the_compressed_slot_measures() {
+    let dir = temp_dir("compression");
+    fixture(&dir);
+
+    let gzipped = |algo: &str| -> u64 {
+        let report = dir.join(format!("payload-{algo}.json"));
+        let (_stdout, stderr, code) = run_args(
+            &dir,
+            &[
+                "--mode",
+                "json",
+                "--compression-algorithm",
+                algo,
+                "--report",
+                report.to_str().expect("path"),
+            ],
+        );
+        assert_eq!(code, 0, "stderr: {stderr}");
+        let json = fs::read_to_string(&report).expect("the json report exists");
+        let start = json.find("\"gzip\":").expect("gzip field in payload") + 7;
+        let digits: String = json[start..]
+            .chars()
+            .skip_while(|c| !c.is_ascii_digit())
+            .take_while(char::is_ascii_digit)
+            .collect();
+        digits.parse().expect("gzip value is a number")
+    };
+
+    let gzip = gzipped("gzip");
+    let brotli = gzipped("brotli");
+    let zstd = gzipped("zstd");
+    assert!(gzip > 0 && brotli > 0 && zstd > 0, "{gzip} {brotli} {zstd}");
+    assert_ne!(gzip, brotli, "different algorithms must not report the same bytes");
+    assert_ne!(gzip, zstd, "different algorithms must not report the same bytes");
+}
+
+#[test]
+fn json_is_a_real_shortcut_for_json_mode() {
+    let dir = temp_dir("json-shortcut");
+    fixture(&dir);
+    let (stdout, stderr, code) = run_args(&dir, &["--json"]);
+    assert_eq!(code, 0, "stderr: {stderr}");
+    assert!(stdout.contains("\"sizeDimension\""), "the payload goes to stdout: {stdout}");
+    assert!(!dir.join("nopeat-report.html").exists(), "the shortcut must not also write a report");
+}
+
+#[test]
+fn a_stats_file_with_a_bundle_dir_measures_real_sizes_like_wba() {
+    let stats_dir = temp_dir("bundledir-stats");
+    let bundle_dir = temp_dir("bundledir-assets");
+    fs::write(
+        stats_dir.join("stats.json"),
+        r#"{"version":"5.90.0",
+            "assets":[{"type":"asset","name":"index.js","size":4096,"chunks":[0],"emitted":true}],
+            "chunks":[{"id":0,"names":["main"],"files":["index.js"],"size":4096}],
+            "modules":[{"id":1,"identifier":"./src/first.js","name":"./src/first.js","size":2048,"chunks":[0],"reasons":[]},
+                       {"id":2,"identifier":"./src/second.js","name":"./src/second.js","size":2048,"chunks":[0],"reasons":[]}]}"#,
+    )
+    .expect("write stats");
+    fixture(&bundle_dir);
+
+    let (stdout, stderr, code) = run_args(
+        &stats_dir.join("stats.json"),
+        &[
+            bundle_dir.to_str().expect("path"),
+            "--mode",
+            "static",
+            "-r",
+            stats_dir.join("r.html").to_str().expect("path"),
+        ],
+    );
+    assert_eq!(code, 0, "stderr: {stderr}");
+    assert!(
+        stdout.contains("dimension parsed") || stdout.contains("dimension attributed"),
+        "the bundle dir made real sizes measurable: {stdout}"
+    );
+    assert!(
+        stdout.contains("gzip") || stdout.contains("brotli") || stdout.contains("zstd"),
+        "the compressed slot got measured against the bundle dir: {stdout}"
+    );
+    assert!(
+        stdout.contains("2/2 modules attributed"),
+        "the maps next to the bundle dir are fused: {stdout}"
+    );
+    assert!(
+        !stdout.contains("needs a stats.json"),
+        "a stats file has a declared graph, ghosts stay detectable: {stdout}"
+    );
+}
