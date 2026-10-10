@@ -94,7 +94,13 @@ reported as undetectable (`NPT0051`) instead of as a reassuring zero.
   但没有任何 source map 解释得了的模块"。
 - **只有产物**（一个带 `*.map` 的 `dist/` 目录）给出实测文件体积和按 source 的归因，
   这已经是 vite、rollup、parcel、tsup 默认给你的全部信息。这里的尺寸是精确的，
-  因为是量出来的而不是估算的。幽灵检测会明说自己不可用，而不是报一个 0：
+  因为是量出来的而不是估算的。幽灵检测会明说自己不可用，而不是报一个 0（`NPT0051`）。
+
+```bash
+nopeat ./dist/stats.json   # 打包器图
+nopeat ./dist              # 只给产物目录，递归读取
+```
+
 ## 问题
 
 你把体积分析工具指向一次构建，它要么内存爆掉，要么要跑一分钟，最后给你一张你根本没法行动的图片。
@@ -174,9 +180,21 @@ HTML 报告另外还有搜索、三种分组维度、按模块下钻、明暗主
 
 ## 安装
 
-**已发布。** 从 npm 安装（会下载对应平台的发布二进制）：[`npm i -g @nathangzchow/nopeat`](https://www.npmjs.com/package/@nathangzchow/nopeat)；也可以抓取二进制发布，或从源码构建。`cargo install nopeat-cli` 目前还用不了：[`nopeat-core`](https://crates.io/crates/nopeat-core) 已经上架 crates.io，CLI crate 还没有。
+从 npm 安装 `nopeat` 命令——包会下载对应平台的发布二进制，并用 `checksums.txt` 校验。包主页在 [npmjs.com/package/@nathangzchow/nopeat](https://www.npmjs.com/package/@nathangzchow/nopeat)：
+
+```bash
+npm install -g @nathangzchow/nopeat
+```
+
+不安装、直接跑一次：
+
+```bash
+npx @nathangzchow/nopeat ./dist
+```
 
 **平台：** 预编译二进制覆盖 Windows x64、macOS x64 与 Apple silicon、Linux x64 / arm64；其余平台用 `cargo` 从源码构建。
+
+**发布二进制** —— 每次发布五个 target（Linux、macOS、Windows 各 x86-64 与 aarch64），都在 `checksums.txt` 里列了 sha256。运行前先校验：
 
 ```bash
 # Linux and macOS
@@ -188,29 +206,26 @@ tar -xzf nopeat.tar.gz
 curl -L -o nopeat.zip \
   https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.1-x86_64-pc-windows-msvc.zip
 
-# or from source
+sha256sum -c checksums.txt
+```
+
+**从源码构建** —— 只需要 Rust 工具链：
+
+```bash
 git clone https://github.com/nopeat/nopeat.git
 cd nopeat
 cargo build --release
 ./target/release/nopeat ./dist
 ```
 
-```bash
-sha256sum -c checksums.txt
+**作为 Rust 库使用** —— 分析引擎已上架 [crates.io](https://crates.io/crates/nopeat-core)：
+
+```toml
+[dependencies]
+nopeat-core = "2.1.1"
 ```
 
-```bash
-git clone https://github.com/Nopeat/Nopeat.git
-cd nopeat
-cargo build --release
-./target/release/nopeat ./dist
-```
-
-推送 `v*` tag 之后，发布流程按 `ARCHITECTURE.md release-and-ci.md` §2 的顺序执行：先把二进制
-传到 GitHub releases，再把 `nopeat-core` 发到 crates.io，最后才发 npm wrapper
-—— npm 包名是最稀缺的资源，留到最后使用。npm 与 crates.io 的徽章以及两条安装命令会在
-填写 `repo-links.json` 的那次提交里回来。npm wrapper 会在写入或执行任何东西之前校验
-`checksums.txt`。
+`cargo install nopeat-cli` 目前还用不了：CLI crate 还没发布，这条命令今天会失败。npm 包和上面的发布二进制是两条可用路线；CLI crate 会在发布它的那个提交里回来。
 
 ## 使用
 

@@ -164,12 +164,26 @@ network requests.</sub>
 
 ## Install
 
-**Published.** Install from npm (downloads the release binary for your platform):
-[`npm i -g @nathangzchow/nopeat`](https://www.npmjs.com/package/@nathangzchow/nopeat).
-Or grab a binary, or build it:
+Install the `nopeat` command from npm — the package downloads the release
+binary for your platform and verifies it against `checksums.txt`. The package
+lives at [npmjs.com/package/@nathangzchow/nopeat](https://www.npmjs.com/package/@nathangzchow/nopeat):
+
+```bash
+npm install -g @nathangzchow/nopeat
+```
+
+Run once without installing:
+
+```bash
+npx @nathangzchow/nopeat ./dist
+```
 
 **Platforms:** prebuilt binaries ship for Windows x64, macOS x64 and Apple
 silicon, and Linux x64 / arm64; anything else builds from source with `cargo`.
+
+**Release binaries** — five targets per release (x86-64 and aarch64 for Linux,
+macOS and Windows), each listed with a sha256 in `checksums.txt`. Verify before
+running anything:
 
 ```bash
 # Linux and macOS
@@ -181,28 +195,29 @@ tar -xzf nopeat.tar.gz
 curl -L -o nopeat.zip \
   https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.1-x86_64-pc-windows-msvc.zip
 
-# or from source
+sha256sum -c checksums.txt
+```
+
+**From source** — a Rust toolchain is the only requirement:
+
+```bash
 git clone https://github.com/nopeat/nopeat.git
 cd nopeat
 cargo build --release
 ./target/release/nopeat ./dist
 ```
 
-Five targets are published for `v2.1.1` — x86-64 and aarch64 for Linux, macOS
-and Windows — each with a sha256 in `checksums.txt`. Verify before running
-anything:
+**As a Rust library** — the analysis engine is on
+[crates.io](https://crates.io/crates/nopeat-core):
 
-```bash
-sha256sum -c checksums.txt
+```toml
+[dependencies]
+nopeat-core = "2.1.1"
 ```
 
-The npm wrapper downloads its binary from this release rather than shipping
-one, and checks `checksums.txt` before writing or executing anything.
-
-`cargo install nopeat-cli` does not work yet: [`nopeat-core`](https://crates.io/crates/nopeat-core)
-is on crates.io, the CLI crate is not, so that command fails today. Build from
-source, or use one of the two routes above; the crate comes back in the commit
-that publishes it.
+`cargo install nopeat-cli` does not work yet: the CLI crate is not published,
+so that command fails today. The npm package and the release binaries above are
+the two working routes; the crate comes back in the commit that publishes it.
 
 ## Use
 

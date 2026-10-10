@@ -98,6 +98,11 @@ JS ヒープに載せます。363 MB のビルドでは、それで「これ有�
 Nopeat は stats をストリームで読み、生成されたバイトを実測し、source map を
 モジュールグラフに join し、使った次元を明示します。
 
+```bash
+nopeat ./dist/stats.json   # バンドラーグラフ
+nopeat ./dist              # 出力フォルダだけ、再帰的に読む
+```
+
 ## 実測値
 
 フルパイプライン — stats のパース、ディスク上の全アセットの実測、source map の統合、
@@ -173,9 +178,21 @@ HTML レポートにはさらに検索、3 つのグルーピング軸、モジ�
 
 ## インストール
 
-**公開済み。** npm からインストール（対応プラットフォームのリリースバイナリをダウンロードします）：[`npm i -g @nathangzchow/nopeat`](https://www.npmjs.com/package/@nathangzchow/nopeat)。バイナリを取得するか、ソースからビルドすることもできます。`cargo install nopeat-cli` はまだ使えません：[`nopeat-core`](https://crates.io/crates/nopeat-core) は crates.io にありますが、CLI クレートがありません。
+`nopeat` コマンドは npm からインストールします——パッケージは対応プラットフォームのリリースバイナリをダウンロードし、`checksums.txt` で検証します。パッケージのページは [npmjs.com/package/@nathangzchow/nopeat](https://www.npmjs.com/package/@nathangzchow/nopeat)：
+
+```bash
+npm install -g @nathangzchow/nopeat
+```
+
+インストールせずに一度だけ実行：
+
+```bash
+npx @nathangzchow/nopeat ./dist
+```
 
 **プラットフォーム：** Windows x64、macOS x64 と Apple silicon、Linux x64 / arm64 向けのプリビルドバイナリを同梱。それ以外は `cargo` でソースからビルドできます。
+
+**リリースバイナリ** —— リリースごとに 5 ターゲット（Linux・macOS・Windows の x86-64 と aarch64）、それぞれ `checksums.txt` に sha256 があります。実行前に検証してください：
 
 ```bash
 # Linux and macOS
@@ -187,29 +204,26 @@ tar -xzf nopeat.tar.gz
 curl -L -o nopeat.zip \
   https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.1-x86_64-pc-windows-msvc.zip
 
-# or from source
+sha256sum -c checksums.txt
+```
+
+**ソースからビルド** —— 必要なのは Rust ツールチェーンだけです：
+
+```bash
 git clone https://github.com/nopeat/nopeat.git
 cd nopeat
 cargo build --release
 ./target/release/nopeat ./dist
 ```
 
-```bash
-sha256sum -c checksums.txt
+**Rust ライブラリとして** —— 解析エンジンは [crates.io](https://crates.io/crates/nopeat-core) にあります：
+
+```toml
+[dependencies]
+nopeat-core = "2.1.1"
 ```
 
-```bash
-git clone https://github.com/Nopeat/Nopeat.git
-cd nopeat
-cargo build --release
-./target/release/nopeat ./dist
-```
-
-`v*` タグを push すると、リリースワークフローが `ARCHITECTURE.md release-and-ci.md` §2 の順で
-公開します：まずバイナリを GitHub リリースへ、次に `nopeat-core` を crates.io へ、
-最後に npm ラッパーを —— npm の名前は最も希少な資源なので最後に使います。
-npm と crates.io のバッジ、および 2 つのインストールコマンドは、`repo-links.json` を
-埋めるコミットで戻ります。npm ラッパーは書き込みや実行の前に `checksums.txt` を検証します。
+`cargo install nopeat-cli` はまだ使えません：CLI クレートは未公開のため、このコマンドは失敗します。npm パッケージと上記のリリースバイナリの 2 つが実際の導入経路です。CLI クレートは公開するコミットで戻ります。
 
 ## 使い方
 

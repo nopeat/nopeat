@@ -65,6 +65,11 @@ map, and neither reconciles them.
 
 Nopeat does, and whatever fails to reconcile is reported rather than hidden:
 
+```bash
+nopeat ./dist/stats.json   # a bundler graph
+nopeat ./dist              # just the output folder, read recursively
+```
+
 - **Ghost code** — declared by the bundler, attributed to no source file. Code that
   will ship to production and that no one on the team has traced back.
 - **Hidden code** — bytes in the bundle that map back to no module. Minifier
@@ -180,9 +185,21 @@ eine Detailansicht je Modul, Hell und Dunkel und keine Netzwerkanfragen.</sub>
 
 ## Installation
 
-**Veröffentlicht.** Über npm installieren (lädt das Release-Binary für die Plattform): [`npm i -g @nathangzchow/nopeat`](https://www.npmjs.com/package/@nathangzchow/nopeat). Alternativ das Binary holen oder aus dem Quellcode bauen. `cargo install nopeat-cli` funktioniert noch nicht: [`nopeat-core`](https://crates.io/crates/nopeat-core) liegt auf crates.io, das CLI-Crate nicht.
+Installiere den `nopeat`-Befehl aus npm — das Paket lädt das Release-Binary für die Plattform und verifiziert es gegen `checksums.txt`. Die Paketseite: [npmjs.com/package/@nathangzchow/nopeat](https://www.npmjs.com/package/@nathangzchow/nopeat):
+
+```bash
+npm install -g @nathangzchow/nopeat
+```
+
+Einmal ausführen, ohne zu installieren:
+
+```bash
+npx @nathangzchow/nopeat ./dist
+```
 
 **Plattformen:** vorgebaute Binaries für Windows x64, macOS x64 und Apple Silicon sowie Linux x64 / arm64; alles andere baut per `cargo` aus dem Quellcode.
+
+**Release-Binaries** — fünf Targets pro Release (x86-64 und aarch64 für Linux, macOS und Windows), je mit sha256 in `checksums.txt`. Vor dem Ausführen verifizieren:
 
 ```bash
 # Linux and macOS
@@ -194,30 +211,26 @@ tar -xzf nopeat.tar.gz
 curl -L -o nopeat.zip \
   https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.1-x86_64-pc-windows-msvc.zip
 
-# or from source
+sha256sum -c checksums.txt
+```
+
+**Aus dem Quellcode** — einzige Voraussetzung ist eine Rust-Toolchain:
+
+```bash
 git clone https://github.com/nopeat/nopeat.git
 cd nopeat
 cargo build --release
 ./target/release/nopeat ./dist
 ```
 
-```bash
-sha256sum -c checksums.txt
+**Als Rust-Bibliothek** — die Analyse-Engine liegt auf [crates.io](https://crates.io/crates/nopeat-core):
+
+```toml
+[dependencies]
+nopeat-core = "2.1.1"
 ```
 
-```bash
-git clone https://github.com/Nopeat/Nopeat.git
-cd nopeat
-cargo build --release
-./target/release/nopeat ./dist
-```
-
-Nach einem `v*`-Tag veröffentlicht die Release-Pipeline in der Reihenfolge aus
-`ARCHITECTURE.md release-and-ci.md` §2: zuerst Binärdateien in die GitHub-Releases, dann
-`nopeat-core` auf crates.io, zuletzt den npm-Wrapper — der npm-Name ist die knappste
-Ressource und wird zuletzt ausgegeben. Die npm- und crates.io-Badges und die beiden
-Installationsbefehle kommen im Commit zurück, der `repo-links.json` ausfüllt. Der
-npm-Wrapper prüft `checksums.txt`, bevor er etwas schreibt oder ausführt.
+`cargo install nopeat-cli` funktioniert noch nicht: das CLI-Crate ist nicht veröffentlicht, der Befehl schlägt heute fehl. Das npm-Paket und die Release-Binaries oben sind die beiden funktionierenden Wege; das Crate kommt in dem Commit zurück, der es veröffentlicht.
 
 ## Verwendung
 
