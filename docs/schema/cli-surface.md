@@ -39,31 +39,21 @@ same short form; the last column says what to expect when it does.
 
 | flag | values | default | wba compatibility |
 |---|---|---|---|
-| `-m, --mode` | `static` \| `json` \| `server` | `static` | same flag; wba defaults to `server`, we default to `static` because a CI run wants a file, not a listener |
-| `--host` | host name | `127.0.0.1` | same flag (server mode binds it) |
-| `-p, --port` | number \| `auto` | `8888` | same flag; `auto` binds an OS-assigned port and prints the real URL |
-| `-r, --report` | path | `nopeat-report.html` | same flag; different default file name. In `json` mode a report path writes the payload there instead of stdout |
-| `-t, --title` | string | the input label | same flag; wba defaults to the current date |
-| `-s, --default-sizes` | `stat` \| `parsed` \| `gzip` \| `brotli` \| `zstd` \| `attributed` | `parsed` | same flag plus `attributed`; wba 5.x default is also `parsed` |
-| `--compression-algorithm` | `gzip` \| `brotli` \| `zstd` | `gzip` | same flag, same values; the compressed size column and the `gzip` size slot hold the bytes of the chosen algorithm |
-| `-O, --no-open` | flag | off | accepted for compatibility; nopeat never opens a browser, so it is a no-op by construction |
-| `-e, --exclude` | regex, repeatable | – | same flag |
-| `-l, --log-level` | `debug` \| `info` \| `warn` \| `error` \| `silent` | `info` | same flag and levels; `silent` prints nothing, exit codes still carry the verdict |
+| `-m, --mode` | `static` \| `json` | `static` | `webpack-bundle-analyzer -m` |
+| `-r, --report` | path | `nopeat-report.html` | `webpack-bundle-analyzer -r` |
+| `-s, --default-sizes` | `stat` \| `parsed` \| `gzip` \| `attributed` | `parsed` | `webpack-bundle-analyzer -s` |
+| `-e, --exclude` | regex, repeatable | – | `webpack-bundle-analyzer -e` |
+| `-O, --no-open` | flag | off (static never opens a browser) | `webpack-bundle-analyzer -O` |
+| `--budget` | path to `nopeat.config.json` | – | new |
+| `--json` | flag (shortcut for `--mode json` to stdout) | off | new |
+| `--dims` | `source` \| `package` \| `chunk` \| `ext` (repeatable) | all three of `source`, `package`, `chunk` | new |
+| `--include-sources` | flag | off | new: embed `sourcesContent` in the HTML for drill-down |
+| `--bench` | flag | off | new: print one line of JSON timings and counts (`ingest_ms`, `total_ms`, modules, assets, packages, total size, dimension) instead of a report, then exit `0` |
+| `--bench-map` | flag | off | new: benchmark decoding one `*.map` file and print one line of JSON (`parse_ms`, `attribute_ms`, sources, mappings, attributed files and bytes), then exit |
+| `-l, --log-level` | `error` \| `warn` \| `info` \| `debug` | `warn` | `webpack-bundle-analyzer -l` |
 
-Nopeat extensions, named so they cannot collide with a wba flag:
-
-| flag | values | default | purpose |
-|---|---|---|---|
-| `--budget` | path to `nopeat.config.json` | – | CI gate: breaches emit `NPT0040` diagnostics and exit `1` (§3) |
-| `--csv` | path | – | module-level export, one row per module |
-| `--dims` | `package` \| `source` \| `chunk` \| `ext` (repeatable) | all four | which treemap dimensions to build |
-| `--include` | regex, repeatable | – | whitelist counterpart to `--exclude` |
-| `--json` | flag | off | shortcut for `--mode json` to stdout; it wins over a conflicting `--mode` |
-| `--min-size` | bytes | – | drop modules below the threshold, reported as `NPT0060` |
-
-The `-h` short flag stays bound to help, as it does in wba itself; `--host`
-is long-only for the same reason wba made its host value optional
-(webpack-bundle-analyzer#239).
+Deliberate non-goals for Phase 1: no `--serve` (a static single file is the
+whole promise; see ADR-0002), no GUI, no plugin system.
 
 ## 3. Budget config
 
@@ -114,3 +104,18 @@ what it looked for.
 `--watch` (Phase 2), `--baseline <file>` (Phase 3, trend diffing) and
 `--format sarif` (Phase 3) are explicitly reserved names so plugins and CI
 configs written against Nopeat 1.x keep parsing.
+
+## 7. Diagnostic codes
+
+`NPT0040` (budget breach, §3) and `NPT0042` (size invariant, §1) are described
+above. The remaining codes are the same ones documented in
+[`ARCHITECTURE.md`](../../ARCHITECTURE.md); each is a stable string you can grep for.
+
+| code | severity | condition |
+|---|---|---|
+| `NPT0001` | warning | the stats file has no `modules` array, which is a dev-server export rather than a build |
+| `NPT0002` | error | no asset was found next to the metadata, so there is nothing to attribute |
+| `NPT0050` | warning | no source maps sit next to the output, so only file sizes are known. Build with `--sourcemap` for per-source attribution |
+| `NPT0051` | info | no bundler metadata in the folder, so ghost code cannot be detected. It needs a declared graph to compare against |
+| `NPT0052` | info | modules with no name were skipped. webpack emits one for its runtime, and a module with no path cannot be attributed to a file |
+| `NPT0060` | info | modules below `--min-size` were filtered out. The count and the bytes are exact; the names listed are a sample |
