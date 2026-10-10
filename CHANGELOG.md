@@ -11,6 +11,15 @@ says so and gives the number.
 
 ## [Unreleased]
 
+### Fixed
+
+- The npm wrapper's shim had no `#!/usr/bin/env node` shebang, so npm generated
+  Windows launchers that execute the `.js` file directly. A `nopeat` whose
+  binary never arrived — blocked postinstall, failed download — then exited 0
+  in silence instead of saying so. The shim's own diagnostics (exit 127, the
+  three fixes it suggests) are unchanged; they were just unreachable on
+  Windows. Found by installing the package and running it, not by a test.
+
 ## [2.1.1] - 2026-10-09
 
 ### Fixed

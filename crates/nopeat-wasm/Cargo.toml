@@ -10,7 +10,7 @@ authors.workspace = true
 readme = "README.md"
 
 [dependencies]
-nopeat-core = { version = "=2.1.1", path = "../nopeat-core" }
+nopeat-core = { version = "=2.1.2", path = "../nopeat-core" }
 serde_json = { workspace = true }
 
 [lints]
