@@ -321,8 +321,8 @@ jobs:
           name: bench-results
           path: bench/results/*
 
-  release:
-    name: release dry run
+  package:
+    name: package dry run
     needs: [test, parity]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
