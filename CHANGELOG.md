@@ -11,6 +11,45 @@ says so and gives the number.
 
 ## [Unreleased]
 
+## [2.1.3] - 2026-10-10
+
+### Fixed
+
+- The npm installer never matched an entry in `checksums.txt`, so the binary was
+  skipped on every platform and every install. A checksum line is
+  `<sha256>  <asset name>`, and the lookup destructured the first field as the
+  name, comparing the hash against the asset name. Installing 2.1.2 printed
+  `skipped the binary download (checksums.txt has no entry for ...)`, then
+  exited 0. `checksumFor` is now exported and tested against a real
+  `checksums.txt`; reverting the one-line fix turns five of its tests red.
+- The Windows zip is flat — `Compress-Archive` was given the `.exe` directly, so
+  there is no `nopeat-<version>-<triple>/` directory inside it — while the Unix
+  tar.gz is built from a staged folder and does have one. The installer looked
+  for the wrapping directory on both, and its fallback looked for a bare
+  `nopeat.exe` that the zip never contains, so it could not find the binary even
+  after unpacking it. The archive also sits in the same temporary folder and
+  matches any `startsWith('nopeat-')` filter, so the zip itself could be picked
+  up as the binary. `findBinary` walks the tree and matches the real name
+  instead. Verified by installing 2.1.2 from the published release: the binary
+  downloads, verifies, unpacks, and `nopeat --version` reports it.
+- `alreadyUsable()` ran at module scope, so importing `install.mjs` — which the
+  new tests do — either exited 0 or threw on a platform with no published
+  binary. It now runs inside `main()`, and asset names resolve through the
+  exported `assetNameFor`.
+
+### Changed
+
+- The shim's "no binary found" message and the installer's skip message now lead
+  with the actual cause. npm blocks dependency install scripts unless you allow
+  them, so `npm i -g` on a default configuration downloads nothing and then
+  exits 127 at first run. Both suggest
+  `npm i -g --allow-scripts=@nathangzchow/nopeat`, and the npm package README
+  documents the flag, the one-off `node install.mjs` repair, and how to persist
+  the setting. The flag cannot be declared by the package itself: `allowScripts`
+  is consumer-side policy and is ignored in a dependency's manifest.
+
+## [2.1.2] - 2026-10-10
+
 ### Fixed
 
 - The npm wrapper's shim had no `#!/usr/bin/env node` shebang, so npm generated

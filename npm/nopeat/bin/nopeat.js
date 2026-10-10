@@ -19,10 +19,6 @@ const candidates = [
 const found = candidates.find((p) => existsSync(p));
 
 if (!found) {
-  const build =
-    process.platform === 'win32'
-      ? 'cargo build --release --manifest-path crates/nopeat-cli/Cargo.toml'
-      : 'cargo build --release --manifest-path crates/nopeat-cli/Cargo.toml';
   process.stderr.write(
     [
       '',
@@ -31,10 +27,14 @@ if (!found) {
       `  platform: ${process.platform}-${process.arch}`,
       `  looked in: ${candidates.join('\n            ')}`,
       '',
-      '  Fix it either way:',
-      `    - install the release binary:  node install.mjs`,
-      `    - or build from source:        ${build}`,
-      `    - or point at an existing one: NOPEAT_BIN=/path/to/nopeat`,
+      '  Most often the install script was skipped. npm blocks dependency',
+      '  install scripts unless you approve them, so the binary was never',
+      '  downloaded. Either way:',
+      '',
+      '    - let the install script run:  npm i -g --allow-scripts=@nathangzchow/nopeat',
+      '    - or fetch it now:             node install.mjs',
+      '    - or build from source:        cargo build --release --manifest-path crates/nopeat-cli/Cargo.toml',
+      '    - or point at an existing one: NOPEAT_BIN=/path/to/nopeat',
       '',
     ].join('\n'),
   );

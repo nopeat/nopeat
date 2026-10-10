@@ -1,5 +1,13 @@
 import { createHash } from 'node:crypto';
-import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { get as httpsGet } from 'node:https';
@@ -23,6 +31,18 @@ const base = `https://github.com/${repo}/releases/download/v${version}`;
 
 const unfilled = () => /\{\{[A-Z_]+\}\}/.test(repo);
 
+// A `checksums.txt` line is `<sha256>  <asset name>`, so the name is the second
+// field. Taking the first one compares the hash against the asset name, which
+// never matches: the download is skipped on every platform, and the package
+// installs with no binary behind it.
+export function checksumFor(text, assetName) {
+  const rows = text
+    .split('\n')
+    .map((line) => line.trim().split(/\s+/))
+    .filter((row) => row.length >= 2);
+  return rows.find(([, name]) => name === assetName)?.[0] ?? null;
+}
+
 const alreadyUsable = () => {
   if (process.env.NOPEAT_BIN && existsSync(process.env.NOPEAT_BIN)) return true;
   const local = [
@@ -31,10 +51,6 @@ const alreadyUsable = () => {
   ].find(existsSync);
   return Boolean(local);
 };
-
-if (alreadyUsable()) {
-  process.exit(0);
-}
 
 // The release publishes assets named after the Rust target triple, and the
 // Windows one is a zip. Node's platform/arch do not line up with a Rust triple on
@@ -50,17 +66,38 @@ const TARGET_TRIPLES = {
   'win32-x64': 'x86_64-pc-windows-msvc',
 };
 
-const platformKey = `${process.platform}-${process.arch}`;
-const targetTriple = TARGET_TRIPLES[platformKey];
-if (!targetTriple) {
-  throw new Error(
-    `no published binary for ${platformKey}; build from source with ` +
-      '`cargo build --release`, or set NOPEAT_BIN.',
-  );
+// Resolved on demand rather than at import, so requiring this module to reach
+// `checksumFor` neither exits nor throws on a platform it cannot serve.
+export function assetNameFor(platform = process.platform, arch = process.arch) {
+  const targetTriple = TARGET_TRIPLES[`${platform}-${arch}`];
+  if (!targetTriple) {
+    throw new Error(
+      `no published binary for ${platform}-${arch}; build from source with ` +
+        '`cargo build --release`, or set NOPEAT_BIN.',
+    );
+  }
+  return `nopeat-${version}-${targetTriple}${platform === 'win32' ? '.zip' : '.tar.gz'}`;
 }
 
-const extension = process.platform === 'win32' ? '.zip' : '.tar.gz';
-const assetName = `nopeat-${version}-${targetTriple}${extension}`;
+// Locate the released binary wherever the archive put it. On Windows the zip is
+// flat and the file is `nopeat-<version>-<triple>.exe`; elsewhere it is `nopeat`
+// inside a directory of that same name. Archives and licence files are skipped
+// so the archive sitting in the same folder cannot be picked up by mistake.
+export function findBinary(dir, name = exe) {
+  const wanted =
+    name.endsWith('.exe')
+      ? (n) => n === name || /^nopeat-[^/]+\.exe$/.test(n)
+      : (n) => n === name;
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      const hit = findBinary(join(dir, entry.name), name);
+      if (hit) return hit;
+    } else if (wanted(entry.name)) {
+      return join(dir, entry.name);
+    }
+  }
+  return null;
+}
 
 function fetch(url, redirectsLeft = 5) {
   return new Promise((res, rej) => {
@@ -83,6 +120,12 @@ function fetch(url, redirectsLeft = 5) {
 }
 
 async function main() {
+  // A checkout that already has a built binary has nothing to download, and
+  // running this as a side effect of `npm install` in the monorepo would
+  // clobber it.
+  if (alreadyUsable()) {
+    process.exit(0);
+  }
   if (unfilled()) {
 
     throw new Error(
@@ -90,6 +133,7 @@ async function main() {
         'Fill it in via repo-links.json, or set NOPEAT_REPO=owner/name.',
     );
   }
+  const assetName = assetNameFor();
   try {
     process.stdout.write(`nopeat: fetching ${assetName}\n`);
     const payload = await fetch(`${base}/${assetName}`);
@@ -99,11 +143,7 @@ async function main() {
     if (!checksums) {
       throw new Error(`no checksums.txt published for v${version}`);
     }
-    const expected = checksums
-      .toString('utf8')
-      .split('\n')
-      .map((line) => line.trim().split(/\s+/))
-      .find(([name]) => name === assetName)?.[0];
+    const expected = checksumFor(checksums.toString('utf8'), assetName);
     if (!expected) {
       throw new Error(`checksums.txt has no entry for ${assetName}`);
     }
@@ -115,9 +155,14 @@ async function main() {
     }
 
     mkdirSync(vendorDir, { recursive: true });
-    // Both archives wrap the binary in a `nopeat-<version>-<target>` directory, so
-    // both need unpacking rather than being written straight to the target path.
-    const { readdirSync } = await import('node:fs');
+    // The two archives do not have the same layout. The Windows zip is a flat
+    // `nopeat-<version>-<triple>.exe` with no directory around it, because
+    // `Compress-Archive` was given the file. The Unix tar.gz does have a
+    // `nopeat-<version>-<triple>/` directory, because it was built with `tar -czf`
+    // on a staged folder. Searching for a wrapping directory therefore finds
+    // nothing on Windows, and the archive we just wrote into the same folder
+    // matches any `startsWith('nopeat-')` filter, so it can also be mistaken for
+    // the binary. Walk the tree and match the real name instead.
     const tmp = join(vendorDir, '..', `extract-${process.pid}`);
     mkdirSync(tmp, { recursive: true });
     const archive = join(tmp, assetName);
@@ -139,11 +184,7 @@ async function main() {
       execFileSync('tar', ['-xzf', archive, '-C', tmp], { stdio: 'ignore' });
     }
 
-    const [dir] = readdirSync(tmp).filter((n) => n.startsWith('nopeat-'));
-    const extracted = dir
-      ? join(tmp, dir, exe)
-      // some archivers flatten the single entry
-      : (existsSync(join(tmp, exe)) ? join(tmp, exe) : null);
+    const extracted = findBinary(tmp);
     if (!extracted) {
       throw new Error(`the archive did not contain ${exe}`);
     }
@@ -157,16 +198,20 @@ async function main() {
       [
         `nopeat: skipped the binary download (${err.message}).`,
         'The package is installed, but it will need a binary at first run.',
-        '  - build from source: cargo build --release',
-        '  - or re-run with the network: node install.mjs',
+        '  - re-run the installer: node install.mjs',
+        '  - or build from source: cargo build --release',
         '  - or point at one: NOPEAT_BIN=/path/to/nopeat',
+        '  - or let it run at install time: npm i -g --allow-scripts=@nathangzchow/nopeat',
         '',
       ].join('\n'),
     );
   }
 }
 
-await main();
-
-
-void pathToFileURL;
+// Importable so the checksum parser can be tested against a real
+// `checksums.txt` without hitting the network; run directly it still installs.
+const invokedDirectly =
+  process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
+if (invokedDirectly) {
+  await main();
+}

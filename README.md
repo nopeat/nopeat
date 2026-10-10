@@ -169,13 +169,22 @@ binary for your platform and verifies it against `checksums.txt`. The package
 lives at [npmjs.com/package/@nathangzchow/nopeat](https://www.npmjs.com/package/@nathangzchow/nopeat):
 
 ```bash
-npm install -g @nathangzchow/nopeat
+npm install -g --allow-scripts=@nathangzchow/nopeat
+```
+
+The extra flag is required, not optional. That download is a `postinstall`
+script, and npm blocks dependency install scripts unless you allow them. Without
+the flag the wrapper installs fine and then exits 127 on first run with the
+command to fix it. To stop typing it, persist it once:
+
+```bash
+npm config set allow-scripts=@nathangzchow/nopeat --location=user
 ```
 
 Run once without installing:
 
 ```bash
-npx @nathangzchow/nopeat ./dist
+npx --yes --allow-scripts=@nathangzchow/nopeat @nathangzchow/nopeat ./dist
 ```
 
 **Platforms:** prebuilt binaries ship for Windows x64, macOS x64 and Apple
