@@ -8,10 +8,10 @@ read from it.
 nopeat ./dist --mode json > sizes.json
 ```
 
-Eleven top-level keys:
+Twelve top-level keys:
 
 ```text
-assets  chunks  diagnostics  fusion  inputs  modules
+assets  chunks  compression  diagnostics  fusion  inputs  modules
 schema_version  sizeDimension  target  totals  trees
 ```
 
@@ -25,6 +25,7 @@ compatible bumps it.
 | `schema_version` | integer | `1` |
 | `target` | string | the input's label - file name, or folder name |
 | `sizeDimension` | string | **the dimension you asked for** (see below) |
+| `compression` | string | the algorithm that measured the compressed slot: `gzip` (default), `brotli` or `zstd` via `--compression-algorithm` |
 | `totals` | object | `total_size`, `module_count`, `asset_count`, `package_count`, `size_dimension`, `module_size_sum` |
 | `inputs` | array | what was read, in merge order |
 | `diagnostics` | array | see [diagnostics](diagnostics.md) |
@@ -33,7 +34,7 @@ compatible bumps it.
 | `trees` | array | one entry per requested dimension: `{dimension, tree}` |
 | `fusion` | object or `null` | present when source maps were found |
 
-`modules` is the eleventh key, and it is the one conditional top-level key: it
+`modules` is the one conditional top-level key: it
 is present in `--mode json` and absent from the HTML report's own payload,
 because there it lives in the companion detail file instead. An object keyed by
 module id, each value carrying `name`, `package`, `chunks`, `reasons`,

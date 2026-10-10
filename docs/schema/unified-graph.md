@@ -50,7 +50,7 @@ the longest common suffix. Anything that cannot be matched is reported as a
 |---|---|---|
 | `stat` | the bundler's own numbers | estimate; wrong whenever minification, concatenation or a `null` byte in `size` kicks in |
 | `parsed` | bytes of the emitted file | exact for "how big is the file" |
-| `gzip` | gzip level 6 of the emitted file | exact; **level is part of the contract** (see `sizes::gzip_size`) |
+| `gzip` | compressed bytes of the emitted file: gzip level 6 by default, or brotli / zstd via `--compression-algorithm` | exact; **the gzip level and the brotli/zstd parameters are part of the contract** (see `sizes::gzip_size` / `sizes::compressed_size`) |
 | `attributed` | source map mappings | ground truth per original source |
 
 `SizeSet::effective()` resolves in the order `attributed > parsed > stat`, and
