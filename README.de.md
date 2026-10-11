@@ -188,13 +188,39 @@ eine Detailansicht je Modul, Hell und Dunkel und keine Netzwerkanfragen.</sub>
 Installiere den `nopeat`-Befehl aus npm — das Paket lädt das Release-Binary für die Plattform und verifiziert es gegen `checksums.txt`. Die Paketseite: [npmjs.com/package/@nathangzchow/nopeat](https://www.npmjs.com/package/@nathangzchow/nopeat):
 
 ```bash
+npm install -g @nathangzchow/nopeat --allow-scripts=@nathangzchow/nopeat
+```
+
+Danach kurz prüfen:
+
+```bash
+nopeat --version   # nopeat 2.1.3
+```
+
+An diesem Befehl gibt es zwei Dinge zu beachten.
+
+Der Paketname kommt **zuerst**. `--allow-scripts` nimmt den unmittelbar folgenden
+Wert als Freigabeliste, also lässt `npm install -g --allow-scripts=@nathangzchow/nopeat`
+— Flag zuerst — npm ohne irgendein zu installierendes Paket zurück, und der Befehl
+bricht ab, weil er ein `package.json` im aktuellen Verzeichnis sucht. Korrekt ist
+`install -g <Paketname> --allow-scripts=<Paketname>`.
+
+Das Flag gibt das `postinstall` frei, das das Binary lädt. npm 11 **warnt** heute
+nur bei nicht freigegebenen Skripten — es schreibt `npm warn allow-scripts` und
+führt sie trotzdem aus — deshalb klappt die Installation auch ohne das Flag.
+npm plant, diese Warnung in einen Fehler umzuwandlen; jetzt freizugeben hält die
+Installation am Laufen, wenn das der Fall ist. Einmalig freigeben statt jeden
+Mal das Flag zu tippen:
+
+```bash
+npm config set allow-scripts=@nathangzchow/nopeat --location=user
 npm install -g @nathangzchow/nopeat
 ```
 
-Einmal ausführen, ohne zu installieren:
+Einmal ohne Installation ausführen:
 
 ```bash
-npx @nathangzchow/nopeat ./dist
+npx --yes --allow-scripts=@nathangzchow/nopeat @nathangzchow/nopeat ./dist
 ```
 
 **Plattformen:** vorgebaute Binaries für Windows x64, macOS x64 und Apple Silicon sowie Linux x64 / arm64; alles andere baut per `cargo` aus dem Quellcode.
@@ -204,12 +230,12 @@ npx @nathangzchow/nopeat ./dist
 ```bash
 # Linux and macOS
 curl -L -o nopeat.tar.gz \
-  https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.1-x86_64-unknown-linux-gnu.tar.gz
+  https://github.com/nopeat/nopeat/releases/download/v2.1.3/nopeat-2.1.3-x86_64-unknown-linux-gnu.tar.gz
 tar -xzf nopeat.tar.gz
 
 # Windows
 curl -L -o nopeat.zip \
-  https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.1-x86_64-pc-windows-msvc.zip
+  https://github.com/nopeat/nopeat/releases/download/v2.1.3/nopeat-2.1.3-x86_64-pc-windows-msvc.zip
 
 sha256sum -c checksums.txt
 ```
@@ -227,7 +253,7 @@ cargo build --release
 
 ```toml
 [dependencies]
-nopeat-core = "2.1.1"
+nopeat-core = "2.1.3"
 ```
 
 `cargo install nopeat-cli` funktioniert noch nicht: das CLI-Crate ist nicht veröffentlicht, der Befehl schlägt heute fehl. Das npm-Paket und die Release-Binaries oben sind die beiden funktionierenden Wege; das Crate kommt in dem Commit zurück, der es veröffentlicht.

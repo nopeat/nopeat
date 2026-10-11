@@ -181,13 +181,38 @@ HTML レポートにはさらに検索、3 つのグルーピング軸、モジ�
 `nopeat` コマンドは npm からインストールします——パッケージは対応プラットフォームのリリースバイナリをダウンロードし、`checksums.txt` で検証します。パッケージのページは [npmjs.com/package/@nathangzchow/nopeat](https://www.npmjs.com/package/@nathangzchow/nopeat)：
 
 ```bash
+npm install -g @nathangzchow/nopeat --allow-scripts=@nathangzchow/nopeat
+```
+
+インストールしたら、まず確認します：
+
+```bash
+nopeat --version   # nopeat 2.1.3
+```
+
+このコマンドには注意点が 2 つあります。
+
+パッケージ名は**前に**書きます。`--allow-scripts` は直後の値を許可リストとして
+扱うので、`npm install -g --allow-scripts=@nathangzchow/nopeat`——flag を前に
+書く形——では npm にインストール対象が 1 つも無くなり、カレントディレクトリの
+`package.json` を読もうとして失敗します。正しい形は
+`install -g <パッケージ名> --allow-scripts=<パッケージ名>` です。
+
+この flag が承認するのは、バイナリを取得する `postinstall` です。npm 11 は現状、
+未承認のスクリプトに対しては**警告だけ**して——`npm warn allow-scripts` と出して
+そのまま実行します——なので flag を外してもインストール自体は通ります。npm は
+この警告をエラーに昇格させる予定なので、今のうちに承認しておけば昇格後も
+インストールが動き続けます。毎回 flag を打つ代わりに一度だけ承認するなら：
+
+```bash
+npm config set allow-scripts=@nathangzchow/nopeat --location=user
 npm install -g @nathangzchow/nopeat
 ```
 
 インストールせずに一度だけ実行：
 
 ```bash
-npx @nathangzchow/nopeat ./dist
+npx --yes --allow-scripts=@nathangzchow/nopeat @nathangzchow/nopeat ./dist
 ```
 
 **プラットフォーム：** Windows x64、macOS x64 と Apple silicon、Linux x64 / arm64 向けのプリビルドバイナリを同梱。それ以外は `cargo` でソースからビルドできます。
@@ -197,12 +222,12 @@ npx @nathangzchow/nopeat ./dist
 ```bash
 # Linux and macOS
 curl -L -o nopeat.tar.gz \
-  https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.1-x86_64-unknown-linux-gnu.tar.gz
+  https://github.com/nopeat/nopeat/releases/download/v2.1.3/nopeat-2.1.3-x86_64-unknown-linux-gnu.tar.gz
 tar -xzf nopeat.tar.gz
 
 # Windows
 curl -L -o nopeat.zip \
-  https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.1-x86_64-pc-windows-msvc.zip
+  https://github.com/nopeat/nopeat/releases/download/v2.1.3/nopeat-2.1.3-x86_64-pc-windows-msvc.zip
 
 sha256sum -c checksums.txt
 ```
@@ -220,7 +245,7 @@ cargo build --release
 
 ```toml
 [dependencies]
-nopeat-core = "2.1.1"
+nopeat-core = "2.1.3"
 ```
 
 `cargo install nopeat-cli` はまだ使えません：CLI クレートは未公開のため、このコマンドは失敗します。npm パッケージと上記のリリースバイナリの 2 つが実際の導入経路です。CLI クレートは公開するコミットで戻ります。

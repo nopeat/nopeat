@@ -24,6 +24,88 @@ the source file that caused it.
 
 </div>
 
+## Install
+
+Install the `nopeat` command from npm — the package downloads the release
+binary for your platform and verifies it against `checksums.txt`. The package
+lives at [npmjs.com/package/@nathangzchow/nopeat](https://www.npmjs.com/package/@nathangzchow/nopeat):
+
+```bash
+npm install -g @nathangzchow/nopeat --allow-scripts=@nathangzchow/nopeat
+```
+
+Then check it:
+
+```bash
+nopeat --version   # nopeat 2.1.3
+```
+
+Two things about that command.
+
+The package name comes **first**. `--allow-scripts` takes the value that
+follows it as its allow-list, so `npm install -g --allow-scripts=@nathangzchow/nopeat`
+— flag first — leaves npm with no package to install at all, and it aborts
+trying to read a `package.json` out of the current directory. It has to be
+`install -g <package> --allow-scripts=<package>`.
+
+The flag approves the `postinstall` that fetches the binary. npm 11 only
+**warns** for an unapproved script today — it prints `npm warn allow-scripts`
+and runs it anyway — so dropping the flag still installs. npm is promoting that
+warning to an error, so approving it now keeps the install working when it
+does. To approve it once instead of typing it every time:
+
+```bash
+npm config set allow-scripts=@nathangzchow/nopeat --location=user
+npm install -g @nathangzchow/nopeat
+```
+
+Run once without installing:
+
+```bash
+npx --yes --allow-scripts=@nathangzchow/nopeat @nathangzchow/nopeat ./dist
+```
+
+**Platforms:** prebuilt binaries ship for Windows x64, macOS x64 and Apple
+silicon, and Linux x64 / arm64; anything else builds from source with `cargo`.
+
+**Release binaries** — five targets per release (x86-64 and aarch64 for Linux,
+macOS and Windows), each listed with a sha256 in `checksums.txt`. Verify before
+running anything:
+
+```bash
+# Linux and macOS
+curl -L -o nopeat.tar.gz \
+  https://github.com/nopeat/nopeat/releases/download/v2.1.3/nopeat-2.1.3-x86_64-unknown-linux-gnu.tar.gz
+tar -xzf nopeat.tar.gz
+sha256sum -c checksums.txt
+
+# Windows
+curl -L -o nopeat.zip \
+  https://github.com/nopeat/nopeat/releases/download/v2.1.3/nopeat-2.1.3-x86_64-pc-windows-msvc.zip
+Expand-Archive nopeat.zip -DestinationPath .
+```
+
+**From source** — a Rust toolchain is the only requirement:
+
+```bash
+git clone https://github.com/nopeat/nopeat.git
+cd nopeat
+cargo build --release
+./target/release/nopeat ./dist
+```
+
+**As a Rust library** — the analysis engine is on
+[crates.io](https://crates.io/crates/nopeat-core):
+
+```toml
+[dependencies]
+nopeat-core = "2.1.3"
+```
+
+`cargo install nopeat-cli` does not work yet: the CLI crate is not published,
+so that command fails today. The npm package and the release binaries above are
+the two working routes; the crate comes back in the commit that publishes it.
+
 ## Why it is fast
 
 Three decisions, each with a number behind it. The full table is in
@@ -162,63 +244,6 @@ the tool's output; CI regenerates it and fails on a diff. The HTML report adds
 search, three grouping dimensions, per-module drill-down, light/dark, and makes no
 network requests.</sub>
 
-## Install
-
-Install the `nopeat` command from npm — the package downloads the release
-binary for your platform and verifies it against `checksums.txt`. The package
-lives at [npmjs.com/package/@nathangzchow/nopeat](https://www.npmjs.com/package/@nathangzchow/nopeat):
-
-```bash
-npm install -g @nathangzchow/nopeat
-```
-
-Run once without installing:
-
-```bash
-npx @nathangzchow/nopeat ./dist
-```
-
-**Platforms:** prebuilt binaries ship for Windows x64, macOS x64 and Apple
-silicon, and Linux x64 / arm64; anything else builds from source with `cargo`.
-
-**Release binaries** — five targets per release (x86-64 and aarch64 for Linux,
-macOS and Windows), each listed with a sha256 in `checksums.txt`. Verify before
-running anything:
-
-```bash
-# Linux and macOS
-curl -L -o nopeat.tar.gz \
-  https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.1-x86_64-unknown-linux-gnu.tar.gz
-tar -xzf nopeat.tar.gz
-
-# Windows
-curl -L -o nopeat.zip \
-  https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.1-x86_64-pc-windows-msvc.zip
-
-sha256sum -c checksums.txt
-```
-
-**From source** — a Rust toolchain is the only requirement:
-
-```bash
-git clone https://github.com/nopeat/nopeat.git
-cd nopeat
-cargo build --release
-./target/release/nopeat ./dist
-```
-
-**As a Rust library** — the analysis engine is on
-[crates.io](https://crates.io/crates/nopeat-core):
-
-```toml
-[dependencies]
-nopeat-core = "2.1.1"
-```
-
-`cargo install nopeat-cli` does not work yet: the CLI crate is not published,
-so that command fails today. The npm package and the release binaries above are
-the two working routes; the crate comes back in the commit that publishes it.
-
 ## Use
 
 ```bash
@@ -271,7 +296,7 @@ Pre-1.0. Anything unmeasured says so.
 | WASM build, WebGL renderer | not started |
 | npm (`@nathangzchow/nopeat`) | published |
 | crates.io | `nopeat-core` published; `nopeat-cli` **not published**, so `cargo install nopeat-cli` fails |
-| GitHub release | v2.1.1 published, 5 targets, with sha256 checksums |
+| GitHub release | v2.1.3 published, 5 targets, with sha256 checksums |
 | tests | 82 Rust, 4 npm, 1,018 generated layout cases |
 | coverage | 82.19% of lines, against a 70% floor |
 | Linux and macOS runners | not exercised; CI runs on Windows only |

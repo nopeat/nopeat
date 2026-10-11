@@ -201,7 +201,7 @@ async function main() {
         '  - re-run the installer: node install.mjs',
         '  - or build from source: cargo build --release',
         '  - or point at one: NOPEAT_BIN=/path/to/nopeat',
-        '  - or let it run at install time: npm i -g --allow-scripts=@nathangzchow/nopeat',
+        '  - or let it run at install time: npm i -g @nathangzchow/nopeat --allow-scripts=@nathangzchow/nopeat',
         '',
       ].join('\n'),
     );

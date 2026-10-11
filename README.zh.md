@@ -183,13 +183,36 @@ HTML 报告另外还有搜索、三种分组维度、按模块下钻、明暗主
 从 npm 安装 `nopeat` 命令——包会下载对应平台的发布二进制，并用 `checksums.txt` 校验。包主页在 [npmjs.com/package/@nathangzchow/nopeat](https://www.npmjs.com/package/@nathangzchow/nopeat)：
 
 ```bash
+npm install -g @nathangzchow/nopeat --allow-scripts=@nathangzchow/nopeat
+```
+
+装完先确认一下：
+
+```bash
+nopeat --version   # nopeat 2.1.3
+```
+
+这条命令有两点要注意。
+
+包名必须写在**前面**。`--allow-scripts` 会把紧跟其后的值当成允许列表，所以
+`npm install -g --allow-scripts=@nathangzchow/nopeat`——把 flag 写在前面——
+等于没给 npm 任何要装的包，它会转去读当前目录的 `package.json` 然后失败。
+正确写法是 `install -g <包名> --allow-scripts=<包名>`。
+
+这个 flag 批准的是下载二进制的那个 `postinstall`。npm 11 目前对未批准的脚本
+只**警告**——打印 `npm warn allow-scripts` 然后照常执行——所以去掉 flag 也能装上。
+npm 正准备把这个警告升级成错误，现在批准可以让它升级后安装照样工作。与其每次都
+敲 flag，不如批准一次：
+
+```bash
+npm config set allow-scripts=@nathangzchow/nopeat --location=user
 npm install -g @nathangzchow/nopeat
 ```
 
 不安装、直接跑一次：
 
 ```bash
-npx @nathangzchow/nopeat ./dist
+npx --yes --allow-scripts=@nathangzchow/nopeat @nathangzchow/nopeat ./dist
 ```
 
 **平台：** 预编译二进制覆盖 Windows x64、macOS x64 与 Apple silicon、Linux x64 / arm64；其余平台用 `cargo` 从源码构建。
@@ -199,12 +222,12 @@ npx @nathangzchow/nopeat ./dist
 ```bash
 # Linux and macOS
 curl -L -o nopeat.tar.gz \
-  https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.1-x86_64-unknown-linux-gnu.tar.gz
+  https://github.com/nopeat/nopeat/releases/download/v2.1.3/nopeat-2.1.3-x86_64-unknown-linux-gnu.tar.gz
 tar -xzf nopeat.tar.gz
 
 # Windows
 curl -L -o nopeat.zip \
-  https://github.com/nopeat/nopeat/releases/download/v2.1.1/nopeat-2.1.1-x86_64-pc-windows-msvc.zip
+  https://github.com/nopeat/nopeat/releases/download/v2.1.3/nopeat-2.1.3-x86_64-pc-windows-msvc.zip
 
 sha256sum -c checksums.txt
 ```
@@ -222,7 +245,7 @@ cargo build --release
 
 ```toml
 [dependencies]
-nopeat-core = "2.1.1"
+nopeat-core = "2.1.3"
 ```
 
 `cargo install nopeat-cli` 目前还用不了：CLI crate 还没发布，这条命令今天会失败。npm 包和上面的发布二进制是两条可用路线；CLI crate 会在发布它的那个提交里回来。

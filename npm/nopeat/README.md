@@ -5,18 +5,25 @@ the `nopeat` binary. One analyzer for every bundler: `nopeat ./dist` analyses a 
 ## Install
 
 ```sh
-npm install -g --allow-scripts=@nathangzchow/nopeat
+npm install -g @nathangzchow/nopeat --allow-scripts=@nathangzchow/nopeat
 nopeat ./dist
 ```
 
-The extra flag is not optional. This package ships a wrapper, not a binary: a
-`postinstall` script downloads the prebuilt `nopeat` for your platform from the
+This package ships a wrapper, not a binary: a `postinstall` script downloads
+the prebuilt `nopeat` for your platform from the
 [GitHub releases](https://github.com/Nopeat/Nopeat/releases) and verifies it
-against `checksums.txt`. npm blocks dependency install scripts unless you allow
-them, so without the flag the wrapper installs fine and then exits `127` with
-instructions the first time you run it.
+against `checksums.txt`. The flag approves that script. npm 11 only warns for
+an unapproved script and runs it anyway, so omitting the flag still installs
+today, but npm is promoting that warning to an error and approving it keeps the
+install working when it does. Either way, if the download never ran the
+wrapper exits `127` with instructions the first time you run it.
 
-If that happened, either re-run the installer:
+The package name comes before the flag, because `--allow-scripts` takes the
+value that follows it as its allow-list; written the other way round npm has no
+package left to install and aborts reading a `package.json` from the current
+directory.
+
+If the download never happened, either re-run the installer:
 
 ```sh
 node "$(npm root -g)/@nathangzchow/nopeat/install.mjs"
@@ -25,7 +32,7 @@ node "$(npm root -g)/@nathangzchow/nopeat/install.mjs"
 or let npm run it next time:
 
 ```sh
-npm install -g --allow-scripts=@nathangzchow/nopeat
+npm install -g @nathangzchow/nopeat --allow-scripts=@nathangzchow/nopeat
 ```
 
 To persist it for future installs instead of typing the flag every time:
